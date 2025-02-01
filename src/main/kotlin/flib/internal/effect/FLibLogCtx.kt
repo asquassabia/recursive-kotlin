@@ -1,4 +1,4 @@
-package org.xrpn.flib.effects
+package org.xrpn.flib.internal.effect
 
 import java.io.PrintStream
 
@@ -17,14 +17,18 @@ interface FLibLogCtx {
     val emitterString: String?
 
     /** emit to destination what we know of the emitter identity */
-    fun emitUnconditionally(): FLibLogCtx {
-        logStream.println("$emitterClass${emitterString?.let { "'$it'" }}")
-        return this
+    fun emitterId(indent: Boolean = false, newLine: Boolean = true): FLibLogCtx = synchronized(logStream) {
+        if (indent) logStream.print("\t")
+        logStream.print("$emitterClass${emitterString?.let { "($it)" } ?: ("")}")
+        if (newLine) logStream.println()
+        logStream.flush()
+        this
     }
 
     /** emit to destination the stack trace of a [Throwable] [t] */
-    fun emitUnconditionally(t: Throwable): FLibLogCtx {
+    fun stackTrace(t: Throwable): FLibLogCtx = synchronized(logStream) {
         t.printStackTrace(logStream)
-        return this
+        logStream.flush()
+        this
     }
 }

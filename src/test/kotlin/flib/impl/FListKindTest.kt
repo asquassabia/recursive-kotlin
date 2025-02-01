@@ -81,13 +81,13 @@ class FListKindTest: ExpectSpec({
         }
         expect("large list") {
             val ll = listKindBuilder(FListKind.empty<Int>(),0,LARGE_DEPTH)
-            ll.hashCode() shouldBe -577767472
-            ll.reverse().hashCode() shouldBe -1644694549
+            ll.hashCode() shouldBe -1644694549
+            ll.reverse().hashCode() shouldBe -577767472
         }
         expect("very large list") {
             val xll = listKindBuilder(FListKind.empty<Int>(),0,XLARGE_DEPTH)
-            xll.hashCode() shouldBe -447314914
-            xll.reverse().hashCode() shouldBe -565784471
+            xll.hashCode() shouldBe -565784471
+            xll.reverse().hashCode() shouldBe -447314914
         }
         expect("enormous list") {
             val xxll = listKindBuilder(FListKind.empty<Int>(),0,1000000)

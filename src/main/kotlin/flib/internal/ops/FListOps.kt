@@ -4,8 +4,8 @@ import org.xrpn.flib.adt.FLCons
 import org.xrpn.flib.adt.FLNil
 import org.xrpn.flib.adt.FList
 import org.xrpn.flib.attribute.Kind
-import org.xrpn.flib.effects.FLibErrLog
 import org.xrpn.flib.impl.FListKind
+import org.xrpn.flib.internal.effect.FLibErrLog
 import org.xrpn.flib.internal.shredset.FSequence
 
 internal class FListOps<T: Any>(private val i: FSequence<FListKind<T>, T> = buildFListOps<T>()) {
