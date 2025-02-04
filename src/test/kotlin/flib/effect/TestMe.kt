@@ -32,7 +32,7 @@ class TestMe(): IdMe {
         val errMsgPrefix = "$ERR_TAG $errorMessage $ERR_BY_TAG"
         val errLogOracle = "$errMsgPrefix \n\tclass flib.effect.TestMe($showMe)\n"
         val errLogNNLOracle = "$errMsgPrefix class flib.effect.TestMe($showMe)"
-        val errLogNullOracle = "$errMsgPrefix \n\t[org.xrpn.flib.effects.FLibLogCtx, kotlin.Any]()\n"
+        val errLogNullOracle = "$errMsgPrefix \n\t[org.xrpn.flib.internal.effect.FLibLogCtx, kotlin.Any]()\n"
         val exceptionReport = "$ERR_TAG $circumstances $ERR_BY_TAG \n\tclass flib.effect.TestMe($showMe)\n$tmsgStartOracle"
     }
 }

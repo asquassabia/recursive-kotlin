@@ -2,18 +2,19 @@ package flib.effect
 
 import flib.testtool.CaptureSpec
 import io.kotest.matchers.shouldBe
-import org.xrpn.flib.internal.effect.FLibErrLog
+import org.xrpn.flib.internal.effect.FLibLog
 
-internal class FLibErrLogTest : CaptureSpec({ makeBuffers ->
-
+internal class FLibErrLogTest : CaptureSpec({ makeCapture ->
+    assertSoftly = true
+    threads = 1
     context("errLog") {
         expect("to stdErr") {
-            val aut = object : FLibErrLog {}
-            val cap = makeBuffers().shareBuffers()
+            val aut = object : FLibLog {}
+            val cap = makeCapture().capture()!!
             cap.use {
                 it.redirect()
                 it.isCaptured() shouldBe true
-                aut.errLog(TestMe.errorMessage, TestMe.emitter, true, System.err)
+                aut.log(TestMe.errorMessage, TestMe.emitter, true, System.err)
                 val (outBuf,errBuf) = it.examine()
                 outBuf shouldBe ""
                 errBuf shouldBe TestMe.errLogOracle
@@ -21,12 +22,12 @@ internal class FLibErrLogTest : CaptureSpec({ makeBuffers ->
             cap.isCaptured() shouldBe false
         }
         expect("null emitter") {
-            val aut = object : FLibErrLog {}
-            val cap = makeBuffers().shareBuffers()
+            val aut = object : FLibLog {}
+            val cap = makeCapture().capture()!!
             cap.use {
                 it.redirect()
                 it.isCaptured() shouldBe true
-                aut.errLog(TestMe.errorMessage,null)
+                aut.log(TestMe.errorMessage,null)
                 val (outBuf,errBuf) = it.examine()
                 errBuf shouldBe TestMe.errLogNullOracle
                 outBuf shouldBe ""
@@ -34,12 +35,12 @@ internal class FLibErrLogTest : CaptureSpec({ makeBuffers ->
             cap.isCaptured() shouldBe false
         }
         expect("no new line") {
-            val aut = object : FLibErrLog {}
-            val cap = makeBuffers().shareBuffers()
+            val aut = object : FLibLog {}
+            val cap = makeCapture().capture()!!
             cap.use {
                 it.redirect()
                 it.isCaptured() shouldBe true
-                aut.errLog(TestMe.errorMessage, TestMe.emitter, newLine = false)
+                aut.log(TestMe.errorMessage, TestMe.emitter, newLine = false)
                 val (outBuf,errBuf) = it.examine()
                 errBuf shouldBe TestMe.errLogNNLOracle
                 outBuf shouldBe ""
@@ -47,8 +48,8 @@ internal class FLibErrLogTest : CaptureSpec({ makeBuffers ->
             cap.isCaptured() shouldBe false
         }
         expect("reportException") {
-            val aut = object : FLibErrLog {}
-            val cap = makeBuffers().shareBuffers()
+            val aut = object : FLibLog {}
+            val cap = makeCapture().capture()!!
             cap.use {
                 it.redirect()
                 it.isCaptured() shouldBe true

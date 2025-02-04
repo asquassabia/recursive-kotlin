@@ -148,4 +148,10 @@ class FListKindTest: ExpectSpec({
             (FListKind.empty<String>().prepend("A").prepend("A").prepend("C") != FListKind.empty<String>().prepend("A").prepend("B").prepend("C")) shouldBe true
         }
     }
+
+    context("lift") {
+        expect("TODO") {
+            TODO()
+        }
+    }
 })

@@ -4,13 +4,13 @@ import java.io.OutputStream
 import java.io.PrintStream
 
 /**
- * [FLibErrLog] is useful for emitting error messages to [System.err] with
- * contextual information from [FLibLogCtx]
+ * [FLibLog] is useful for emitting log messages
+ * with contextual information from [FLibLogCtx]
  */
-internal interface FLibErrLog {
+internal interface FLibLog {
 
     /** Write a log entry to [dest] on behalf of [emitter]?:this */
-    fun errLog(msg: String, emitter: Any? = null, newLine: Boolean = true, dest: OutputStream = System.err) = object :
+    fun log(msg: String, emitter: Any? = null, newLine: Boolean = true, dest: OutputStream = System.err) = object :
         FLibLogCtx {
         override val logStream = PrintStream(dest,true)
         override val emitterClass = emitter?.let { "${it::class}" } ?: "${this::class.supertypes}"
@@ -27,5 +27,5 @@ internal interface FLibErrLog {
      * on behalf of [emitter]?:this
      */
     fun reportException(ex: Exception, circumstances: String, emitter: Any? = null, newLine: Boolean = true, dest: OutputStream = System.err) =
-        errLog(circumstances, emitter, newLine, dest).stackTrace(ex)
+        log(circumstances, emitter, newLine, dest).stackTrace(ex)
 }

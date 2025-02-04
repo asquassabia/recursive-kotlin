@@ -9,7 +9,8 @@ import org.xrpn.flib.internal.tool.capture.OutStr
 import java.io.PrintStream
 
 internal class FLibLogCtxTest : CaptureSpec({ makeBuffers: BufferFactory ->
-
+    assertSoftly = true
+    threads = 1
     context("emitterId") {
         expect("to stdout") {
             val aut = object : FLibLogCtx {
@@ -20,7 +21,7 @@ internal class FLibLogCtxTest : CaptureSpec({ makeBuffers: BufferFactory ->
                 override val emitterString: String
                     get() = TestMe.emitter.toString()
             }
-            val cap = makeBuffers().shareBuffers()
+            val cap = makeBuffers().capture()!!
             cap.use {
                 it.redirect()
                 it.isCaptured() shouldBe true
@@ -40,7 +41,7 @@ internal class FLibLogCtxTest : CaptureSpec({ makeBuffers: BufferFactory ->
                 override val emitterString: String
                     get() = TestMe.emitter.toString()
             }
-            val cap = makeBuffers().shareBuffers()
+            val cap = makeBuffers().capture()!!
             cap.use {
                 it.redirect()
                 it.isCaptured() shouldBe true
@@ -59,7 +60,7 @@ internal class FLibLogCtxTest : CaptureSpec({ makeBuffers: BufferFactory ->
                     get() = TestMe.emitter::class.toString()
                 override val emitterString: String? = null
             }
-            val cap = makeBuffers().shareBuffers()
+            val cap = makeBuffers().capture()!!
             cap.use {
                 it.redirect()
                 it.isCaptured() shouldBe true
@@ -78,7 +79,7 @@ internal class FLibLogCtxTest : CaptureSpec({ makeBuffers: BufferFactory ->
                     get() = TestMe.emitter::class.toString()
                 override val emitterString: String? = null
             }
-            val cap = makeBuffers().shareBuffers()
+            val cap = makeBuffers().capture()!!
             cap.use {
                 it.redirect()
                 it.isCaptured() shouldBe true
@@ -100,7 +101,7 @@ internal class FLibLogCtxTest : CaptureSpec({ makeBuffers: BufferFactory ->
                 override val emitterString: String
                     get() = TestMe.emitter.toString()
             }
-            val cap = makeBuffers().shareBuffers()
+            val cap = makeBuffers().capture()!!
             cap.use {
                 it.redirect()
                 it.isCaptured() shouldBe true
@@ -120,7 +121,7 @@ internal class FLibLogCtxTest : CaptureSpec({ makeBuffers: BufferFactory ->
                 override val emitterString: String
                     get() = TestMe.emitter.toString()
             }
-            val cap = makeBuffers().shareBuffers()
+            val cap = makeBuffers().capture()!!
             cap.use {
                 it.redirect()
                 it.isCaptured() shouldBe true

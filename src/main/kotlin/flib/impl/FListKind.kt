@@ -3,17 +3,17 @@ package org.xrpn.flib.impl
 import org.xrpn.flib.adt.FLNil
 import org.xrpn.flib.adt.FList
 import org.xrpn.flib.attribute.Kind
-import org.xrpn.flib.internal.effect.FLibErrLog
+import org.xrpn.flib.internal.effect.FLibLog
 import org.xrpn.flib.internal.ops.FListOps
+import org.xrpn.flib.internal.ops.FSequenceKind
 import org.xrpn.flib.internal.ops.IdMe
-import org.xrpn.flib.internal.shredset.FSequence
 
 @ConsistentCopyVisibility // this makes the visibility of .copy() private, like the constructor
 data class FListKind<T : Any> private constructor(
     /** empty by default */
     internal val list: FList<T> = FLNil,
     /** delegate that holds implemetation code used for the API */
-    internal val flops: FSequence<FListKind<T>, T> = FListOps<T>().get()
+    internal val flops: FSequenceKind<T> = FListOps<T>().get()
 ) : Kind<FListKind<T>, T>, IdMe {
     override val size: Int by lazy { flops.fsize(this) }
     override val show by lazy { (foldLeft("${FList::class.simpleName}@{$size}:") { str, h -> "$str($h, #" }) + "*)".repeat(size) }
@@ -21,7 +21,7 @@ data class FListKind<T : Any> private constructor(
     override fun equals(other: Any?): Boolean = this === other || (other is FListKind<*>) && run({
         val equality = (this.hash == other.hash)
         // hash is the same IFF continuousMatches equals size
-        assert( continuousMatches(this,other).let { (equality && (size == it)) || !equality } ) {(object : FLibErrLog {}).errLog(
+        assert( continuousMatches(this,other).let { (equality && (size == it)) || !equality } ) {(object : FLibLog {}).log(
             msg = "lh=$hash,\nrh=${other.hash},\nthis =$show,\nother=${other.show}",
             emitter = this@FListKind
         )}
@@ -29,7 +29,6 @@ data class FListKind<T : Any> private constructor(
     })
     override fun hashCode(): Int = hash
     override fun toString(): String = show
-
     companion object {
         /** Builder of empty [FListKind]<[T]> */
         fun <T : Any> empty() = FListKind<T>()
