@@ -1,8 +1,7 @@
 package flib.testtool
 
 import io.kotest.core.spec.style.ExpectSpec
-import org.xrpn.flib.internal.tool.capture.Capture
-import org.xrpn.flib.internal.tool.capture.Capture.Companion.StdBuffers
+import org.xrpn.flib.internal.tool.Capture
 
 /**
  * DANGER:
@@ -15,12 +14,10 @@ import org.xrpn.flib.internal.tool.capture.Capture.Companion.StdBuffers
  * and System.out during the test, but I'm just kidding.
  */
 
-internal typealias BufferFactory = () -> StdBuffers
-
 internal abstract class CaptureSpec(expose: CaptureSpec.(() -> Capture) -> Unit = {}) : ExpectSpec({
     expose(this as CaptureSpec, makeCapture)
 }) {
     companion object {
-        val makeCapture: () -> Capture = { StdBuffers.build().capture()!! }
+        val makeCapture: () -> Capture = { Capture.build() }
     }
 }

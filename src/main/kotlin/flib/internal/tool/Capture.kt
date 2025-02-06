@@ -1,11 +1,12 @@
-package org.xrpn.flib.internal.tool.capture
+package org.xrpn.flib.internal.tool
 
 import arrow.atomic.AtomicBoolean
 import org.xrpn.flib.FIX_TODO
-import org.xrpn.flib.internal.tool.CAPTURE_SIZE
 import java.io.ByteArrayOutputStream
 import java.io.Closeable
 import java.io.PrintStream
+import java.time.Duration
+import java.time.Instant
 
 typealias OutStr = String
 typealias ErrStr = String
@@ -14,6 +15,28 @@ typealias ErrStr = String
  * Control center for capturing stdout and stderr during a live run. This
  * is useful to prevent a wannabe daemon from writing to the terminal, or
  * to examine programmatically what is written to stdout and stderr.
+ * Create with [Capture.build]
+ * '''
+ * val cap = [Capture.build]()
+ * '''
+ * Always wrap with [use]. In order, this is a typical session:
+ * '''
+ * typealias OutStr = String
+ * typealias ErrStr = String
+ * cap.use {
+ *     assert(!it.isCaptured())
+ *     assert(!it.isSpent())
+ *     assert(it.redirect())
+ *     assert(it.isCaptured())
+ *     // ... do something that puts info to stdout or stderr
+ *     val bufs: Pair<OutStr, ErrStr> = cap.examine()
+ *     assert (bufs.first == "stdout output")
+ *     assert (bufs.second == "stderr output")
+ *     assert(it.revert())
+ *     assert(!it.isCaptured())
+ *     assert(it.isSpent())
+ * }
+ * '''
  */
 @ConsistentCopyVisibility
 data class Capture private constructor (
@@ -23,13 +46,21 @@ data class Capture private constructor (
     private val wrapper: BufWrapper
 ): Closeable {
     private val isRedirected = AtomicBoolean(false)
+    private val isSpent = AtomicBoolean(false)
+    private var captureStart: Instant? = null
+    private var captureStop: Instant? = null
+    private var captureLapse: Duration? = null
     private lateinit var originalOut: PrintStream
     private lateinit var originalErr: PrintStream
     private val capPair: Pair<PrintStream, PrintStream> by lazy { synchronized(contentMutex) {
         Pair(PrintStream(outBuffer, true), PrintStream(errBuffer, true))
     }}
     fun isCaptured(): Boolean = isRedirected.get()
-    fun redirect(): Boolean = synchronized(this) {
+    fun isSpent(): Boolean = isSpent.get()
+    fun active(): Duration? = synchronized(contentMutex) { captureStart?.let { start ->
+        captureStop?.let { captureLapse } ?: Duration.between(Instant.now(), start)
+    }}
+    fun redirect(): Boolean = !isSpent.get() && synchronized(globalMutex) {
         synchronized(contentMutex) {
             isRedirected.set(true) // assign before action it protects
             /* I have no means to establish if System.out or System.err had already
@@ -39,47 +70,61 @@ data class Capture private constructor (
             originalErr = System.err
             System.setOut(capPair.first)
             System.setErr(capPair.second)
+            captureStart = Instant.now()
             (System.out != originalOut && System.err != originalErr)
         }
     }
-    fun revert(): Boolean = isRedirected.get() && synchronized(this) {
+    fun revert(): Boolean = isRedirected.get() && synchronized(globalMutex) {
         synchronized(contentMutex) { wrapper.use {
             val owned = (System.out === capPair.first) && (System.err === capPair.second)
             if (!owned) TODO("$FIX_TODO HANDLING attempt to revert on capture by others")
             run({
                 System.setOut(originalOut)
                 System.setErr(originalErr)
+                captureStop = Instant.now()
+                captureLapse = Duration.between(captureStop!!, captureStart!!)
                 isRedirected.set(false) // assign after action it protects
+                isSpent.set(true)
                 (System.out === originalOut && System.err === originalErr)
             })
         }}
     }
 
-    fun examine(): Pair<OutStr, ErrStr> = synchronized(this) { synchronized(contentMutex) { wrapper.use {
+    fun examine(): Pair<OutStr, ErrStr>? = if (isRedirected.get() && !isSpent.get())
+        synchronized(this) { synchronized(contentMutex) { wrapper.use {
         it.flush()
-    }}}
+    }}} else null
 
     override fun close() { revert() }
 
     companion object {
 
-        // private val globalMutex = Object()
+        fun build(): Capture = StdBuffers.build().capture()!!
+
+        /* Used in Capture during [redirect()] and [revert()] */
+        private val globalMutex = Object()
 
         private interface BufWrapper: Closeable {
             fun flush(): Pair<OutStr, ErrStr>
         }
+
+        private fun of(outBuffer: ByteArrayOutputStream,
+                       errBuffer: ByteArrayOutputStream,
+                       mx: Object,
+                       c: BufWrapper
+        ) = synchronized(mx) { Capture(outBuffer,errBuffer,mx,c) }
 
         /**
          * Holds and manages the mutable buffers to which stdout and
          * stderr are redirected during capture for later verification.
          */
         @ConsistentCopyVisibility
-        data class StdBuffers private constructor(
+        private data class StdBuffers private constructor(
             private val outBuffer: ByteArrayOutputStream,
             private val errBuffer: ByteArrayOutputStream
         ): BufWrapper {
-            val alreadyCaptured = AtomicBoolean(false)
-            internal val contentMutex = Object() // protects all private var
+            private val alreadyCaptured = AtomicBoolean(false)
+            private val contentMutex = Object() // protects all private var
             private var flushed: Boolean = false
             private lateinit var out: String
             private lateinit var err: String
@@ -116,10 +161,5 @@ data class Capture private constructor (
             }
         }
 
-        private fun of(outBuffer: ByteArrayOutputStream,
-               errBuffer: ByteArrayOutputStream,
-               mx: Object,
-               c: BufWrapper
-        ) = synchronized(mx) { Capture(outBuffer,errBuffer,mx,c) }
     }
 }
