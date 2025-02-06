@@ -1,7 +1,7 @@
 package flib.effect
 
-import org.xrpn.flib.internal.effect.ERR_BY_TAG
-import org.xrpn.flib.internal.effect.ERR_TAG
+import org.xrpn.flib.ERR_BY_TAG
+import org.xrpn.flib.ERR_TAG
 import org.xrpn.flib.internal.ops.IdMe
 
 class TestMe(): IdMe {

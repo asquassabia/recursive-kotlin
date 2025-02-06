@@ -4,11 +4,12 @@ import flib.testtool.BufferFactory
 import flib.testtool.CaptureSpec
 import io.kotest.matchers.shouldBe
 import org.xrpn.flib.internal.effect.FLibLogCtx
+import org.xrpn.flib.internal.tool.capture.Capture
 import org.xrpn.flib.internal.tool.capture.ErrStr
 import org.xrpn.flib.internal.tool.capture.OutStr
 import java.io.PrintStream
 
-internal class FLibLogCtxTest : CaptureSpec({ makeBuffers: BufferFactory ->
+internal class FLibLogCtxTest : CaptureSpec({ makeCapture: () -> Capture ->
     assertSoftly = true
     threads = 1
     context("emitterId") {
@@ -21,14 +22,15 @@ internal class FLibLogCtxTest : CaptureSpec({ makeBuffers: BufferFactory ->
                 override val emitterString: String
                     get() = TestMe.emitter.toString()
             }
-            val cap = makeBuffers().capture()!!
+            val cap = makeCapture()
             cap.use {
-                it.redirect()
+                it.redirect() shouldBe true
                 it.isCaptured() shouldBe true
                 aut.emitterId(indent = false, newLine = true)
                 val (outBuf: OutStr,errBuf: ErrStr) = it.examine()
                 errBuf shouldBe ""
                 outBuf shouldBe TestMe.msgOracle
+                it.revert() shouldBe true
             }
             cap.isCaptured() shouldBe false
         }
@@ -41,14 +43,15 @@ internal class FLibLogCtxTest : CaptureSpec({ makeBuffers: BufferFactory ->
                 override val emitterString: String
                     get() = TestMe.emitter.toString()
             }
-            val cap = makeBuffers().capture()!!
+            val cap = makeCapture()
             cap.use {
-                it.redirect()
+                it.redirect() shouldBe true
                 it.isCaptured() shouldBe true
                 aut.emitterId(indent = false, newLine = false)
                 val (outBuf,errBuf) = it.examine()
                 errBuf shouldBe TestMe.msgOracle.take(30)
                 outBuf shouldBe ""
+                it.revert() shouldBe true
             }
             cap.isCaptured() shouldBe false
         }
@@ -60,14 +63,15 @@ internal class FLibLogCtxTest : CaptureSpec({ makeBuffers: BufferFactory ->
                     get() = TestMe.emitter::class.toString()
                 override val emitterString: String? = null
             }
-            val cap = makeBuffers().capture()!!
+            val cap = makeCapture()
             cap.use {
-                it.redirect()
+                it.redirect() shouldBe true
                 it.isCaptured() shouldBe true
                 aut.emitterId(indent = false, newLine = true)
                 val (outBuf,errBuf) = it.examine()
                 errBuf shouldBe ""
                 outBuf shouldBe TestMe.msgOracle.take(24)+"\n"
+                it.revert() shouldBe true
             }
             cap.isCaptured() shouldBe false
         }
@@ -79,14 +83,15 @@ internal class FLibLogCtxTest : CaptureSpec({ makeBuffers: BufferFactory ->
                     get() = TestMe.emitter::class.toString()
                 override val emitterString: String? = null
             }
-            val cap = makeBuffers().capture()!!
+            val cap = makeCapture()
             cap.use {
-                it.redirect()
+                it.redirect() shouldBe true
                 it.isCaptured() shouldBe true
                 aut.emitterId(indent = false, newLine = true)
                 val (outBuf,errBuf) = it.examine()
                 errBuf shouldBe ""
                 outBuf shouldBe TestMe.msgOracle.take(24)+"\n"
+                it.revert() shouldBe true
             }
             cap.isCaptured() shouldBe false
         }
@@ -101,7 +106,7 @@ internal class FLibLogCtxTest : CaptureSpec({ makeBuffers: BufferFactory ->
                 override val emitterString: String
                     get() = TestMe.emitter.toString()
             }
-            val cap = makeBuffers().capture()!!
+            val cap = makeCapture()
             cap.use {
                 it.redirect()
                 it.isCaptured() shouldBe true
@@ -109,6 +114,7 @@ internal class FLibLogCtxTest : CaptureSpec({ makeBuffers: BufferFactory ->
                 val (outBuf,errBuf) = it.examine()
                 errBuf shouldBe ""
                 outBuf.take(TestMe.tmsgStartOracle.length) shouldBe TestMe.tmsgStartOracle
+                it.revert() shouldBe true
             }
             cap.isCaptured() shouldBe false
         }
@@ -121,14 +127,15 @@ internal class FLibLogCtxTest : CaptureSpec({ makeBuffers: BufferFactory ->
                 override val emitterString: String
                     get() = TestMe.emitter.toString()
             }
-            val cap = makeBuffers().capture()!!
+            val cap = makeCapture()
             cap.use {
-                it.redirect()
+                it.redirect() shouldBe true
                 it.isCaptured() shouldBe true
                 aut.stackTrace(TestMe.t)
                 val (outBuf,errBuf) = it.examine()
                 errBuf.take(TestMe.tmsgStartOracle.length) shouldBe TestMe.tmsgStartOracle
                 outBuf shouldBe ""
+                it.revert() shouldBe true
             }
             cap.isCaptured() shouldBe false
         }

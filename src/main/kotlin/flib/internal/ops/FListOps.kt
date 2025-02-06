@@ -4,6 +4,7 @@ import org.xrpn.flib.adt.FLCons
 import org.xrpn.flib.adt.FLNil
 import org.xrpn.flib.adt.FList
 import org.xrpn.flib.attribute.Kind
+import org.xrpn.flib.attribute.Monad
 import org.xrpn.flib.impl.FListKind
 import org.xrpn.flib.internal.effect.FLibLog
 import org.xrpn.flib.internal.shredset.FSequence
@@ -17,7 +18,7 @@ internal class FListOps<T: Any>(private val i: FSequenceKind<T> = buildFListOps<
         instance ?: i.also { instance = it }
     }
     companion object {
-        private fun <T: Any> buildFListOps() = object : FSequenceKind<T>, FLibLog {
+        private fun <T: Any> buildFListOps() = object : FSequenceKind<T>, Monad<FList<T>>, FLibLog {
             override fun fsize(fa: Kind<FListKind<T>, T>): Int = ffoldLeft(fa,0) { acc, _ -> acc + 1}
             override fun fempty(fa: Kind<FListKind<T>, T>): Boolean = fpick(fa) == null
             override fun fequal(lhs: Kind<FListKind<T>, T>, rhs: Kind<FListKind<T>, T>): Boolean =
@@ -90,6 +91,17 @@ internal class FListOps<T: Any>(private val i: FSequenceKind<T> = buildFListOps<
                     is FLCons -> go(xs.tail)
                 }
                 return go(fa.fix().list)
+            }
+
+            override fun <A> lift(a: A): Kind<FList<T>, A> {
+                TODO("Not yet implemented")
+            }
+
+            override fun <A, B> flatMap(
+                fa: Kind<FList<T>, A>,
+                f: (A) -> Kind<FList<T>, B>
+            ): Kind<FList<T>, B> {
+                TODO("Not yet implemented")
             }
         }
     }

@@ -2,6 +2,8 @@ package org.xrpn.flib.internal.effect
 
 import java.io.OutputStream
 import java.io.PrintStream
+import org.xrpn.flib.ERR_TAG
+import org.xrpn.flib.ERR_BY_TAG
 
 /**
  * [FLibLog] is useful for emitting log messages

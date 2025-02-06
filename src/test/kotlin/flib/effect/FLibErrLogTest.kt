@@ -1,64 +1,60 @@
 package flib.effect
 
 import flib.testtool.CaptureSpec
+import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
 import org.xrpn.flib.internal.effect.FLibLog
+import org.xrpn.flib.internal.tool.CAPTURE_SIZE
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
 
-internal class FLibErrLogTest : CaptureSpec({ makeCapture ->
+internal class FLibErrLogTest : ExpectSpec({
     assertSoftly = true
     threads = 1
     context("errLog") {
         expect("to stdErr") {
+            val baos = ByteArrayOutputStream(CAPTURE_SIZE)
+            val capture = PrintStream(baos,true)
+            capture.use { cap -> baos.use { buf ->
             val aut = object : FLibLog {}
-            val cap = makeCapture().capture()!!
-            cap.use {
-                it.redirect()
-                it.isCaptured() shouldBe true
-                aut.log(TestMe.errorMessage, TestMe.emitter, true, System.err)
-                val (outBuf,errBuf) = it.examine()
-                outBuf shouldBe ""
-                errBuf shouldBe TestMe.errLogOracle
-            }
-            cap.isCaptured() shouldBe false
+                aut.log(TestMe.errorMessage, TestMe.emitter, true, cap)
+                buf.flush()
+                val log = buf.toString()
+                log shouldBe TestMe.errLogOracle
+            }}
         }
         expect("null emitter") {
+            val baos = ByteArrayOutputStream(CAPTURE_SIZE)
+            val capture = PrintStream(baos,true)
+            capture.use { cap -> baos.use { buf ->
             val aut = object : FLibLog {}
-            val cap = makeCapture().capture()!!
-            cap.use {
-                it.redirect()
-                it.isCaptured() shouldBe true
-                aut.log(TestMe.errorMessage,null)
-                val (outBuf,errBuf) = it.examine()
-                errBuf shouldBe TestMe.errLogNullOracle
-                outBuf shouldBe ""
-            }
-            cap.isCaptured() shouldBe false
+                aut.log(TestMe.errorMessage, dest = cap)
+                buf.flush()
+                val log = buf.toString()
+                log shouldBe TestMe.errLogNullOracle
+            }}
         }
         expect("no new line") {
+            val baos = ByteArrayOutputStream(CAPTURE_SIZE)
+            val capture = PrintStream(baos,true)
+            capture.use { cap -> baos.use { buf ->
             val aut = object : FLibLog {}
-            val cap = makeCapture().capture()!!
-            cap.use {
-                it.redirect()
-                it.isCaptured() shouldBe true
-                aut.log(TestMe.errorMessage, TestMe.emitter, newLine = false)
-                val (outBuf,errBuf) = it.examine()
-                errBuf shouldBe TestMe.errLogNNLOracle
-                outBuf shouldBe ""
-            }
-            cap.isCaptured() shouldBe false
+                aut.log(TestMe.errorMessage, TestMe.emitter, newLine = false, cap)
+                buf.flush()
+                val log = buf.toString()
+                log shouldBe TestMe.errLogNNLOracle
+            }}
         }
         expect("reportException") {
-            val aut = object : FLibLog {}
-            val cap = makeCapture().capture()!!
-            cap.use {
-                it.redirect()
-                it.isCaptured() shouldBe true
-                aut.reportException(TestMe.t,TestMe.circumstances,TestMe.emitter)
-                val (outBuf,errBuf) = it.examine()
-                errBuf.take(TestMe.exceptionReport.length) shouldBe TestMe.exceptionReport
-                outBuf shouldBe ""
-            }
-            cap.isCaptured() shouldBe false
+            val baos = ByteArrayOutputStream(CAPTURE_SIZE)
+            val capture = PrintStream(baos,true)
+            capture.use { cap -> baos.use { buf ->
+                val aut = object : FLibLog {}
+                aut.reportException(TestMe.t,TestMe.circumstances,TestMe.emitter, dest = cap)
+                buf.flush()
+                val log = buf.toString()
+                log.take(TestMe.exceptionReport.length) shouldBe TestMe.exceptionReport
+           }}
         }
     }
 })

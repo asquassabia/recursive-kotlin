@@ -5,7 +5,9 @@ internal interface IdMe {
     val size: Int
     /** True if [IdMe] has no elements*/
     val empty: Boolean
-        get() = size == 0
+        get() = 0 == size
+    val ne: Boolean
+        get() = 0 < size
     /** Stack safe hash code of [IdMe]. */
     val hash: Int
     /** Stack safe [String] representation of [IdMe] */

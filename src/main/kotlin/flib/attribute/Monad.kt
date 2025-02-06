@@ -1,34 +1,41 @@
 package org.xrpn.flib.attribute
 
+/*
+ * CREDIT: Functional Programming in Kotlin
+ */
+
 /**
  * [Monad] is the trade name for whatever has a [flatMap] function (name
  * borrowed from Scala) and a [lift] function.
  */
-interface Monad<F, A> {
+
+interface Monad<F>: Functor<F> {
+
+    /**
+     * [lift] transforms, i.e. 'lifts', something of type [A] and turns it into an [A] wrapped in a 'type constructor' for an
+     * undetermined container [F]. At this time, we don't know much about the container.
+     */
+
+    fun <A> lift(a: A): Kind<F, A>
 
     /** More about [flatMap] later. */
-    fun <G, B : Any> flatMap(fa: Kind<F, A>, f: (A) -> Kind<G, B>): Kind<G, B>
+    fun <A, B> flatMap(fa: Kind<F, A>, f: (A) -> Kind<F, B>): Kind<F, B>
 
     /**
      * Every [Monad] can easily become a [Functor] because it is possible
      * to implement [Functor.map] using [flatMap] and [lift]. For instance,
-     * here, [mmap] is an example of how to do it. The name [mmap] will not
-     * conflict with [Functor.map] if an entity both is-a [Monad] and is-a
-     * [Functor]. In such case [Functor.map] may simply defer to [mmap] (such
-     * as in [Functor.map] = [mmap]), where appropriate, or provide a different
-     * implementation. Disclaimer: [mmap] is a figment of Kotlin's [Kind] used
-     * as the Type Constructor workaround, and is provided primarily as an
-     * example. Use carefully!
+     * here, [map] is an example of how to do it.
      */
-    fun <G, B: Any> mmap(
+    override fun <A, B> map(
         fa: Kind<F, A>,
         f: (A) -> B
-    ): Kind<G, B> {
-        val lifter = object : Elevator<Kind<G,*>> {
-            @Suppress("UNCHECKED_CAST")
-            override fun <T: Any> lift(t: T): Kind<G,T> = t as Kind<G,T>
-        }
-        fun fx(a: A) = lifter.lift<B>(f(a))
-        return flatMap(fa) { a -> fx(a) }
-    }
+    ): Kind<F, B> =
+        flatMap(fa) { a -> lift(f(a)) }
+
+    fun <A, B, C> map2(
+        fa: Kind<F, A>,
+        fb: Kind<F, B>,
+        f: (A, B) -> C
+    ): Kind<F, C> =
+        flatMap(fa) { a -> map(fb) { b -> f(a, b) } }
 }
