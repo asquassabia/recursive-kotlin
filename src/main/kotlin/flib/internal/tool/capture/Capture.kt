@@ -1,5 +1,7 @@
 package org.xrpn.flib.internal.tool.capture
 
+import arrow.atomic.AtomicBoolean
+import org.xrpn.flib.FIX_TODO
 import org.xrpn.flib.internal.tool.CAPTURE_SIZE
 import java.io.ByteArrayOutputStream
 import java.io.Closeable
@@ -15,31 +17,53 @@ typealias ErrStr = String
  */
 @ConsistentCopyVisibility
 data class Capture private constructor (
-    private val outBuffer: ByteArrayOutputStream,
-    private val errBuffer: ByteArrayOutputStream,
+    private val outBuffer: ByteArrayOutputStream, // val, but is mutable and needs locks
+    private val errBuffer: ByteArrayOutputStream, // val, but is mutable and needs locks
     private val contentMutex: Object,
     private val wrapper: BufWrapper
 ): Closeable {
-    private var isRedirected = false
-    fun isCaptured(): Boolean = synchronized(this) { isRedirected }
-    fun redirect(): Unit = synchronized(this) { synchronized(contentMutex) {
-        System.setOut(PrintStream(outBuffer,true))
-        System.setErr(PrintStream(errBuffer,true))
-        isRedirected = true
+    private val isRedirected = AtomicBoolean(false)
+    private lateinit var originalOut: PrintStream
+    private lateinit var originalErr: PrintStream
+    private val capPair: Pair<PrintStream, PrintStream> by lazy { synchronized(contentMutex) {
+        Pair(PrintStream(outBuffer, true), PrintStream(errBuffer, true))
     }}
-    fun revert(): Unit = synchronized(this) { synchronized(contentMutex) {
-        System.setOut(System.out)
-        System.setErr(System.err)
-        isRedirected = false
-    }}
-    override fun close(): Unit = synchronized(this) { synchronized(contentMutex) { wrapper.use {
-        revert()
-    }}}
+    fun isCaptured(): Boolean = isRedirected.get()
+    fun redirect(): Boolean = synchronized(this) {
+        synchronized(contentMutex) {
+            isRedirected.set(true) // assign before action it protects
+            /* I have no means to establish if System.out or System.err had already
+             * been redirected. These are whatever they are at this time
+             */
+            originalOut = System.out
+            originalErr = System.err
+            System.setOut(capPair.first)
+            System.setErr(capPair.second)
+            (System.out != originalOut && System.err != originalErr)
+        }
+    }
+    fun revert(): Boolean = isRedirected.get() && synchronized(this) {
+        synchronized(contentMutex) { wrapper.use {
+            val owned = (System.out === capPair.first) && (System.err === capPair.second)
+            if (!owned) TODO("$FIX_TODO HANDLING attempt to revert on capture by others")
+            run({
+                System.setOut(originalOut)
+                System.setErr(originalErr)
+                isRedirected.set(false) // assign after action it protects
+                (System.out === originalOut && System.err === originalErr)
+            })
+        }}
+    }
+
     fun examine(): Pair<OutStr, ErrStr> = synchronized(this) { synchronized(contentMutex) { wrapper.use {
-        revert()
         it.flush()
     }}}
+
+    override fun close() { revert() }
+
     companion object {
+
+        // private val globalMutex = Object()
 
         private interface BufWrapper: Closeable {
             fun flush(): Pair<OutStr, ErrStr>
@@ -54,15 +78,26 @@ data class Capture private constructor (
             private val outBuffer: ByteArrayOutputStream,
             private val errBuffer: ByteArrayOutputStream
         ): BufWrapper {
+            val alreadyCaptured = AtomicBoolean(false)
+            internal val contentMutex = Object() // protects all private var
             private var flushed: Boolean = false
-            internal val contentMutex = Object()
             private lateinit var out: String
             private lateinit var err: String
 
             /**
              * [capture] must be called at most once when constructing [Capture]
              */
-            fun capture(): Capture? = if(!flushed) of(outBuffer,errBuffer,contentMutex,this) else null
+            fun capture(): Capture? =
+//                synchronized(globalMutex) {
+                    synchronized (contentMutex) { when {
+                alreadyCaptured.get() -> TODO("$FIX_TODO cannot capture more than once")
+                flushed -> TODO("$FIX_TODO it should be impossible to get here")
+                else -> {
+                    alreadyCaptured.set(true)
+                    of(outBuffer,errBuffer,contentMutex,this)
+                }
+            }}
+        //}
             override fun flush(): Pair<OutStr, ErrStr> = synchronized(contentMutex) { if(!flushed) {
                 outBuffer.flush(); out = outBuffer.toString(); outBuffer.reset()
                 errBuffer.flush(); err = errBuffer.toString(); errBuffer.reset()
