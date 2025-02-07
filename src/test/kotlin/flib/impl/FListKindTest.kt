@@ -95,7 +95,7 @@ class FListKindTest: ExpectSpec({
         }
     }
 
-    context("equals()") {
+    context("eq: KWriter<B>uals()") {
         expect("empty list (this is unfortunate)") {
             FListKind.empty<Int>().equals(FListKind.empty<Int>()) shouldBe true
             FListKind.empty<Int>().equals(FListKind.empty<String>()) shouldBe /* unfortunately */ true

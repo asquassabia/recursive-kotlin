@@ -12,8 +12,9 @@ package org.xrpn.flib.attribute
 interface Monad<F>: Functor<F> {
 
     /**
-     * [lift] transforms, i.e. 'lifts', something of type [A] and turns it into an [A] wrapped in a 'type constructor' for an
-     * undetermined container [F]. At this time, we don't know much about the container.
+     * [lift] transforms, i.e. 'lifts', something of type [A] and turns it into an [A] wrapped in an
+     * undetermined container [F]. At this time, we don't know much about the container, or even if
+     * it is a container at all.
      */
 
     fun <A> lift(a: A): Kind<F, A>

@@ -11,13 +11,14 @@ import org.xrpn.flib.internal.shredset.FSequence
 
 internal interface FSequenceKind<T> : Kind<FListKind<T>, T>, FSequence<FListKind<T>, T> where T: Any
 
-internal class FListOps<T: Any>(private val i: FSequenceKind<T> = buildFListOps<T>()) {
+internal class FListOps<T: Any> private constructor (private val i: FSequenceKind<T> = buildFListOps<T>()) {
     @Volatile
     private var instance: FSequenceKind<T>? = null
     fun get(): FSequenceKind<T> = instance ?: synchronized(this) {
         instance ?: i.also { instance = it }
     }
     companion object {
+        fun <T:Any> build() = FListOps<T>()
         private fun <T: Any> buildFListOps() = object : FSequenceKind<T>, Monad<FList<T>>, FLibLog {
             override fun fsize(fa: Kind<FListKind<T>, T>): Int = ffoldLeft(fa,0) { acc, _ -> acc + 1}
             override fun fempty(fa: Kind<FListKind<T>, T>): Boolean = fpick(fa) == null

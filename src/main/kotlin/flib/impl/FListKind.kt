@@ -13,7 +13,7 @@ data class FListKind<T : Any> private constructor(
     /** empty by default */
     internal val list: FList<T> = FLNil,
     /** delegate that holds implemetation code used for the API */
-    internal val flops: FSequenceKind<T> = FListOps<T>().get()
+    internal val flops: FSequenceKind<T> = FListOps.build<T>().get()
 ) : Kind<FListKind<T>, T>, IdMe {
     override val size: Int by lazy { flops.fsize(this) }
     override val show by lazy { (foldLeft("${FList::class.simpleName}@{$size}:") { str, h -> "$str($h, #" }) + "*)".repeat(size) }

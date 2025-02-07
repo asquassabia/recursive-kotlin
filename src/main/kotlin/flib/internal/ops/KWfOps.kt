@@ -2,8 +2,9 @@ package org.xrpn.flib.internal.ops
 
 import org.xrpn.flib.adt.KWMsg
 import org.xrpn.flib.adt.KWTrace
-import org.xrpn.flib.adt.KWf
 import org.xrpn.flib.adt.KWriter
+import org.xrpn.flib.attribute.Kind
+import org.xrpn.flib.impl.KWf
 
 /*
 case class Debuggable[A](value: A, log: List[String]) {
@@ -52,20 +53,34 @@ concatenation of two log strings.
 
 */
 
+interface KWfBind<FF, AA, BB: Any> {
+    fun bind(f: (AA) -> Kind<FF,BB>, kw: Kind<FF,AA>): Kind<FF,BB>
+}
+interface KWfCompose<A: Any, B: Any,C: Any> {
+    fun compose(g: KWf<B,C>, f: KWf<A,B>): (A) -> Kind<KWriter<C>,C>
+}
+interface KWfChain<A: Any, B: Any,C: Any> {
+    fun chain(f: KWf<A,B>, g: KWf<B,C>): (A) -> Kind<KWriter<C>,C>
+}
+
 @ConsistentCopyVisibility // this makes the visibility of .copy() private, like the constructor
 internal data class KWfOps<A: Any, B: Any> private constructor (val f: (A) -> B): (String) -> (A) -> KWMsg<B> {
     override fun invoke(s: String): (a:A) -> KWMsg<B> = { a -> KWriter.of(f(a), s) as KWMsg<B> }
-    companion object{
+    companion object {
+
         fun<A: Any, B: Any> of(f: (A) -> B) = KWfOps(f)
-        fun <A: Any, B: Any> kwBind(f: (A) -> KWMsg<B>, kw: KWriter<A>): KWriter<B> {
-            val kwb: KWMsg<B> = f(kw.item)
-            return KWriter.push<A,B>(kwb.item,kwb.msg,kw as KWTrace<A>)
+
+        fun <AA: Any, BB: Any> bind(f: (AA) -> KWMsg<BB>, kw: KWriter<AA>): KWriter<BB> {
+            val kwb: KWMsg<BB> = f(kw.item)
+            return KWriter.push<AA,BB>(kwb.item,kwb.msg,kw as KWTrace<AA>)
         }
 
-        fun <A: Any, B:Any, C: Any> kwCompose(f: KWf<A,B>, g: KWf<B,C>): (A) -> KWriter<C> = { a:A ->
+        fun <B:Any, C: Any, A: Any> compose(g: KWf<B,C>, f: KWf<A,B>, ): (A) -> KWriter<C> = { a:A ->
             val kwb: KWMsg<B> = f(a)
             val kwc: KWMsg<C> = g(kwb.item)
             KWriter.of(kwc.item,kwb.msg,kwc.msg)
         }
+
+        fun <B:Any, C: Any, A: Any> chain(f: KWf<A,B>, g: KWf<B,C>): (A) -> KWriter<C> = compose(g,f)
     }
 }
