@@ -2,11 +2,12 @@ package flib.adt
 
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
-import org.xrpn.flib.adt.KWTrace
+import org.xrpn.flib.adt.FWLog
+import org.xrpn.flib.internal.ops.FWOps
 
-class KWTraceTest : ExpectSpec({
-    val kw1 = KWTrace.of(1,"A")
-    val kw2 = KWTrace.of(1,"A", "B")
+class FWOpsTest : ExpectSpec({
+    val kw1 = FWOps.of(1,"A")
+    val kw2 = FWOps.of(1,"B", (kw1 as FWLog<*>).log )
     context("constructors") {
         expect("of(a:A, msg:Strint)") {
             kw1.item shouldBe 1
@@ -15,29 +16,31 @@ class KWTraceTest : ExpectSpec({
         expect("of(a:A, msg1:String, msg2:String)") {
             kw2.item shouldBe 1
             kw2.msg shouldBe "B"
-            kw2.trace.size shouldBe 2
-            kw2.trace.toString() shouldBe "FList@{2}:(B, #(A, #*)*)"
+            val l = (kw2 as FWLog<*>).log
+            l.size shouldBe 2
+            l.toString() shouldBe "FList@{2}:(B, #(A, #*)*)"
         }
         expect("push(b:B, newMsg: String, mts:KWTrace<A>)") {
-            val kw3 = KWTrace.push("2","C", kw2)
+            val kw3 = FWOps.of("2","C",(kw2 as FWLog<*>).log )
             kw3.item shouldBe "2"
             kw3.msg shouldBe "C"
-            kw3.trace.size shouldBe 3
-            kw3.trace.toString() shouldBe "FList@{3}:(C, #(B, #(A, #*)*)*)"
+            val l = (kw3 as FWLog<*>).log
+            l.size shouldBe 3
+            l.toString() shouldBe "FList@{3}:(C, #(B, #(A, #*)*)*)"
         }
     }
     context("hashcode") {
         expect("hash") {
-            val kw = KWTrace.of(2,"A")
+            val kw = FWOps.of(2,"A")
             kw1.hashCode() shouldBe 48115
-            kw.hashCode() shouldBe 48116
+            kw.hashCode() shouldBe 48146
         }
     }
     expect("equals") {
-        val kw2_: KWTrace<Int> = KWTrace.of(1,"A", "B")
-        val kw2a: KWTrace<Int> = KWTrace.of('a'.code,"A", "B")
-        val kw2b: KWTrace<Char> = KWTrace.of('a',"A", "B")
-        val kw2b_: KWTrace<Char> = KWTrace.of('a',"A", "B")
+        val kw2_ = FWOps.of(1,"B",(kw1 as FWLog<*>).log)
+        val kw2a = FWOps.of('a'.code,"B",(kw1 as FWLog<*>).log)
+        val kw2b = FWOps.of('a',"B",(kw1 as FWLog<*>).log)
+        val kw2b_ = FWOps.of('a',"B",(kw1 as FWLog<*>).log)
         kw2.equals(kw2_) shouldBe true
         kw2.equals(kw2a) shouldBe false
         kw2a.equals(kw2b) shouldBe false

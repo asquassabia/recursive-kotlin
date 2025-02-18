@@ -1,5 +1,9 @@
 package org.xrpn.flib.adt
 
+import org.xrpn.flib.attribute.Kind
+
+typealias FLK<T> = Kind<FList<@UnsafeVariance T>, @UnsafeVariance T>
+
 /**
  * FList is a recursive list defined in terms of this ADT (Algebraic Data
  * Type).
@@ -19,11 +23,15 @@ package org.xrpn.flib.adt
  */
 sealed interface FList<out T>
 
+sealed interface FListNonEmpty<out T: Any> {
+    val kind: FLK<T>?
+}
+
 /**
  * List element with no content. Marks the end of the list. [Nothing] is
  * a subtype of all types. Since [FList] is 'covariant' and [FLNil] is
  * parametrized with a type which is a subtype of all types, we can always
- * add [FLNil] to [FList]<out [T]> regardless of [T]
+ * add [FLNil] to [FList].
  */
 data object FLNil : FList<Nothing>
 
@@ -34,4 +42,15 @@ data object FLNil : FList<Nothing>
  * [FList]. Obviously, [head] is read-only and [FLCons] is immutable only
  * to the extent that [head] is also immutable.
  */
-data class FLCons<T>(val head: T, val tail: FList<T>) : FList<T>
+data class FLCons<T: Any>(val head: T, val tail: FList<T>) : FList<T>
+
+
+@ConsistentCopyVisibility // this makes the visibility of .copy() private, like the constructor
+data class FLNel<T: Any> private constructor (
+    val fnel: FLCons<T>,
+    override val kind: FLK<T>
+) : FList<T>, FListNonEmpty<T> {
+    companion object {
+        internal fun <TT: Any> of (fl: FLCons<TT>, k: FLK<TT>) = FLNel(fl,k)
+    }
+}
