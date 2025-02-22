@@ -1,17 +1,16 @@
-package org.xrpn.flib.impl
+package org.xrpn.flib.decorator
 
+import org.xrpn.flib.FLK
 import org.xrpn.flib.FIX_TODO
 import org.xrpn.flib.adt.FLCons
 import org.xrpn.flib.adt.FLNil
 import org.xrpn.flib.adt.FList
-import org.xrpn.flib.adt.FLNel
-import org.xrpn.flib.adt.FLK
+import org.xrpn.flib.adt.FNel
 import org.xrpn.flib.adt.FListNonEmpty
-import org.xrpn.flib.adt.IM
 import org.xrpn.flib.internal.effect.FLibLog
-import org.xrpn.flib.internal.ops.KFListOps
-import org.xrpn.flib.internal.ops.IdMe
-import org.xrpn.flib.internal.ops.KFLOps
+import org.xrpn.flib.internal.IdMe
+import org.xrpn.flib.internal.impl.FLKShreds
+import org.xrpn.flib.internal.shredset.SizeMe
 
 /**
  * A utility wrapper that provides boilerplate functionality for [FList] without
@@ -25,48 +24,58 @@ import org.xrpn.flib.internal.ops.KFLOps
 @ConsistentCopyVisibility // this makes the visibility of .copy() private, like the constructor
 data class KFList<A: Any> private constructor(
     /** delegate that holds implementation code used for the API */
-    internal val ops: KFLOps<FList<A>, A> = KFListOps.build<A>().get()
-) : FLK<A>, IdMe {
+    internal val ops: FLKShreds<A> = FLKShreds.build<A>()
+) : FLK<A>, IdMe, SizeMe {
     /** empty by default */
     private val list: FList<A> by lazy { llist }
     private lateinit var llist: FList<A>
     override val size: Int by lazy { ops.fsize(this) }
+    override val empty: Boolean by lazy { list is FLNil }
     override val show by lazy { (foldLeft("${FList::class.simpleName}@{$size}:") { str, h -> "$str($h, #" }) + "*)".repeat(size) }
     override val hash by lazy { (foldLeft(1549L) { acc: Long, h: A -> 31L * acc + h.hashCode() }).let{ (it xor (it ushr 32)).toInt() } }
-    override fun equals(other: Any?): Boolean = this === other || (other is KFList<*>) && run({
-        val equality = (this.hash == other.hash)
-        // hash is the same IFF continuousMatches equals size
-        assert( continuousMatches(this,other).let { (equality && (size == it)) || !equality } ) {(object : FLibLog {}).log(
-            msg = "lh=$hash,\nrh=${other.hash},\nthis =$show,\nother=${other.show}",
-            emitter = this@KFList
-        )}
-        return equality
-    })
+    override fun equals(other: Any?): Boolean = other?.let { (other is KFList<*>)
+        && (    (equal(other) && let {
+                    assert(continuousMatches(this, other).let { size == it })
+                    {(object : FLibLog {}).log(
+                        msg = "same hash, but not equal\nthis =$show,\nother=${other.show}\nthis =$hash,\nother=${other.hash}",
+                        emitter = this@KFList
+                    )}
+                    true
+                })
+             || let { assert(continuousMatches(this, other).let { size != it })
+                {(object : FLibLog {}).log(
+                    msg = "equal, but different hash\nthis =$show,\nother=${other.show}\nthis =$hash,\nother=${other.hash}",
+                    emitter = this@KFList
+                )}
+                false
+            }
+        )} == true
     override fun hashCode(): Int = hash
     override fun toString(): String = show
     override fun fix(): FList<A> = when (val fl = list) {
         is FLNil -> fl
-        is FLNel -> fl.fnel
+        is FNel -> fl.nel
         is FLCons -> TODO("$FIX_TODO impossible code path")
     }
     @Suppress("UNCHECKED_CAST")
-    fun fnel(): FListNonEmpty<A> = list as? FListNonEmpty<A> ?: throw IllegalStateException("Non empty list request when list is empty")
+    fun fnel(): FListNonEmpty<A> = list as? FListNonEmpty<A> ?: throw IllegalStateException("Non empty list expected when list is empty")
 
     companion object {
-        /** Builder of empty [KFList]<[TT]> */
-        fun <TT : Any> of(): KFList<TT> = KFList<TT>().also { it.llist = FLNil }
+        /** Builder of empty [KFList]<[T1]> */
+        @Suppress("UNCHECKED_CAST")
+        fun <T1 : Any> of(): KFList<T1> = KFList<T1>().also { it.llist = FLNil as FList<T1> }
 
-        /** Builder of [KFList]<[TT]> with content [flist]. */
-        fun <TT : Any> of(flist: FList<TT>): KFList<TT> = when (flist) {
+        /** Builder of [KFList]<[T2]> with content [flist]. */
+        fun <T2 : Any> of(flist: FList<T2>): KFList<T2> = when (flist) {
             is FLNil ->  of()
-            is FLCons -> KFList<TT>().also { it.llist = FLNel.of(flist, it) }
-            is FLNel -> KFList<TT>().also {
+            is FLCons -> KFList<T2>().also { it.llist = FNel.of(flist, it) }
+            is FNel -> KFList<T2>().also {
                 /*
                  * This allows the same FList to be shared between two different
                  * instances of KFList. As long as FList is immutable, meaning,
-                 * TT is also immutable, the behavior is safe.
+                 * T2 is also immutable, the behavior is safe.
                  */
-                it.llist = FLNel.of(flist.fnel,it)
+                it.llist = FNel.of(flist.nel,it)
             }
         }
 

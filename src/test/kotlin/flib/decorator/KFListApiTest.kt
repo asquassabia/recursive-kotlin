@@ -1,4 +1,4 @@
-package flib.impl
+package flib.decorator
 
 import flib.listKindReverseBuilder
 import flib.LARGE_DEPTH

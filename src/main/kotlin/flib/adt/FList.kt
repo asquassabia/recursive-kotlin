@@ -1,8 +1,7 @@
 package org.xrpn.flib.adt
 
-import org.xrpn.flib.attribute.Kind
-
-typealias FLK<T> = Kind<FList<@UnsafeVariance T>, @UnsafeVariance T>
+import org.xrpn.flib.FLK
+import org.xrpn.flib.pattern.Kind
 
 /**
  * FList is a recursive list defined in terms of this ADT (Algebraic Data
@@ -21,11 +20,7 @@ typealias FLK<T> = Kind<FList<@UnsafeVariance T>, @UnsafeVariance T>
  *    Without the 'out' bound, neither super- nor subtypes of A, but only A
  *    types (strictly A), would be allowed in FList
  */
-sealed interface FList<out T>
-
-sealed interface FListNonEmpty<out T: Any> {
-    val kind: FLK<T>?
-}
+sealed interface FList<in T>: FLK<T>
 
 /**
  * List element with no content. Marks the end of the list. [Nothing] is
@@ -42,15 +37,4 @@ data object FLNil : FList<Nothing>
  * [FList]. Obviously, [head] is read-only and [FLCons] is immutable only
  * to the extent that [head] is also immutable.
  */
-data class FLCons<T: Any>(val head: T, val tail: FList<T>) : FList<T>
-
-
-@ConsistentCopyVisibility // this makes the visibility of .copy() private, like the constructor
-data class FLNel<T: Any> private constructor (
-    val fnel: FLCons<T>,
-    override val kind: FLK<T>
-) : FList<T>, FListNonEmpty<T> {
-    companion object {
-        internal fun <TT: Any> of (fl: FLCons<TT>, k: FLK<TT>) = FLNel(fl,k)
-    }
-}
+data class FLCons<T: Any>(val head: T, val tail: FList<T>) : FList<T>, FListNonEmpty<T>

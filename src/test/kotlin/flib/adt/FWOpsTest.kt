@@ -3,11 +3,13 @@ package flib.adt
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
 import org.xrpn.flib.adt.FWLog
+import org.xrpn.flib.adt.FWrtMsg
+import org.xrpn.flib.adt.FWrtMsgs
 import org.xrpn.flib.internal.ops.FWOps
 
 class FWOpsTest : ExpectSpec({
-    val kw1 = FWOps.of(1,"A")
-    val kw2 = FWOps.of(1,"B", (kw1 as FWLog<*>).log )
+    val kw1: FWrtMsg<Int> = FWOps.of(1,"A")
+    val kw2: FWrtMsgs<Int> = FWOps.of(1,"B", (kw1 as FWLog<*>).log )
     context("constructors") {
         expect("of(a:A, msg:Strint)") {
             kw1.item shouldBe 1
@@ -37,10 +39,10 @@ class FWOpsTest : ExpectSpec({
         }
     }
     expect("equals") {
-        val kw2_ = FWOps.of(1,"B",(kw1 as FWLog<*>).log)
-        val kw2a = FWOps.of('a'.code,"B",(kw1 as FWLog<*>).log)
-        val kw2b = FWOps.of('a',"B",(kw1 as FWLog<*>).log)
-        val kw2b_ = FWOps.of('a',"B",(kw1 as FWLog<*>).log)
+        val kw2_: FWrtMsgs<Int> = FWOps.of(1,"B",(kw1 as FWLog<*>).log)
+        val kw2a: FWrtMsgs<Int> = FWOps.of('a'.code,"B",(kw1 as FWLog<*>).log)
+        val kw2b: FWrtMsgs<Char> = FWOps.of('a',"B",(kw1 as FWLog<*>).log)
+        val kw2b_: FWrtMsgs<Char> = FWOps.of('a',"B",(kw1 as FWLog<*>).log)
         kw2.equals(kw2_) shouldBe true
         kw2.equals(kw2a) shouldBe false
         kw2a.equals(kw2b) shouldBe false

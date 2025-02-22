@@ -1,4 +1,4 @@
-package org.xrpn.flib.attribute
+package org.xrpn.flib.pattern
 
 /**
  * [Kind] is the conventional signature of a nested parametrized type.
@@ -60,7 +60,7 @@ package org.xrpn.flib.attribute
  * to understand, I hope, and is likely to run into trouble faster, I'm
  * afraid.
  */
-interface Kind<F, A> {
+interface Kind<out F, in A> { //}: PKind<Kind<*,*>> {
     /**
      * Cast [Kind]<[F],[A]> to [F] so we can 'unnest' [F] and resolve the
      * abstraction. It's called [fix] because, after all, this is a fix.

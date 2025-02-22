@@ -1,4 +1,4 @@
-package flib.impl.companion
+package flib.decorator.companion
 
 import flib.flistReverseBuilder
 import io.kotest.core.spec.style.ExpectSpec

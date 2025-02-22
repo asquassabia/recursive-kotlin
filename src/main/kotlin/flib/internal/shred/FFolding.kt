@@ -1,6 +1,6 @@
 package org.xrpn.flib.internal.shred
 
-import org.xrpn.flib.attribute.Kind
+import org.xrpn.flib.pattern.Kind
 
 /**
  * The order of traversal is deterministic only if ordering is an intrinsic

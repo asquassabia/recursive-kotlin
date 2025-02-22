@@ -1,4 +1,4 @@
-package org.xrpn.flib.attribute
+package org.xrpn.flib.pattern
 
 /**
  * more about [Monoid] later

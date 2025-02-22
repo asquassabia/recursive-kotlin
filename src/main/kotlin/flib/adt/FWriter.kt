@@ -1,9 +1,13 @@
 package org.xrpn.flib.adt
 
+import org.xrpn.flib.internal.IdMe
+import org.xrpn.flib.pattern.Kind
 import org.xrpn.flib.internal.ops.FWOps
 
+typealias FWKind<A> = Kind<FWriter<*>,A>
+
 sealed interface FWrit {  val msg: String }
-sealed interface FWriter<A>: FWrit { val item: A }
+sealed interface FWriter<A>: FWrit, FWKind<A>, IdMe { val item: A }
 /**
  * Guaranteed to have exactly one message in the trace
  */

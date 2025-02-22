@@ -1,4 +1,4 @@
-package flib.impl
+package flib.decorator
 
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe

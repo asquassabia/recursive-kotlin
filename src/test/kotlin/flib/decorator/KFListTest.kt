@@ -1,6 +1,5 @@
-package flib.impl
+package flib.decorator
 
-import arrow.core.nel
 import flib.LARGE_DEPTH
 import flib.XLARGE_DEPTH
 import flib.flistBuilder
@@ -9,7 +8,7 @@ import flib.listKindReverseBuilder
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
-import org.xrpn.flib.adt.FLNel
+import org.xrpn.flib.adt.FNel
 import org.xrpn.flib.adt.FLNil
 import org.xrpn.flib.impl.KFList
 import org.xrpn.flib.impl.prepend
@@ -173,7 +172,7 @@ class KFListTest: ExpectSpec({
             val fl = flistBuilder(FLNil,0,10)
             val kfl = KFList.of(fl)
             kfl.fnel().kind shouldBe kfl
-            (kfl.fnel() as FLNel).fnel shouldBe fl
+            (kfl.fnel() as FNel).nel shouldBe fl
         }
         expect("return ???") {
             val kfl = KFList.of<Int>()

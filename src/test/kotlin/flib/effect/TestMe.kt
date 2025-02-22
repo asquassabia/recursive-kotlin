@@ -2,9 +2,10 @@ package flib.effect
 
 import org.xrpn.flib.ERR_BY_TAG
 import org.xrpn.flib.ERR_TAG
-import org.xrpn.flib.internal.ops.IdMe
+import org.xrpn.flib.internal.IdMe
+import org.xrpn.flib.internal.shredset.SizeMe
 
-class TestMe(): IdMe {
+class TestMe(): IdMe, SizeMe {
     override val size: Int
         get() = 0
     override val hash: Int

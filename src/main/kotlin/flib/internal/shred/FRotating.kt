@@ -1,6 +1,6 @@
 package org.xrpn.flib.internal.shred
 
-import org.xrpn.flib.attribute.Kind
+import org.xrpn.flib.pattern.Kind
 import org.xrpn.flib.internal.shredset.FSequence
 
 internal interface FRotating<F, A : Any> : FSequencing<F, A> {
