@@ -6,7 +6,7 @@ import org.xrpn.flib.adt.FWLog
 import org.xrpn.flib.adt.FWriter
 import org.xrpn.flib.adt.FWrtMsg
 import org.xrpn.flib.adt.FWrtMsgs
-import org.xrpn.flib.impl.KFList
+import org.xrpn.flib.decorator.KFList
 import org.xrpn.flib.internal.IdMe
 
 @ConsistentCopyVisibility // this makes the visibility of .copy() private, like the constructor
@@ -21,7 +21,7 @@ internal data class FWOps<A: Any> private constructor (
         fun show(fw: FWriter<*>): String = (fw as FWLog<*>).log.trace.show
 
         internal fun <T: Any> of(a:T, s: String): FWrtMsg<T> = object: FWrtMsg<T>, FWLog<T>, IdMe {
-            override val log = FWOps<T>(KFList.of(FLCons(s,FLNil)))
+            override val log = FWOps<T>(KFList.of(FLCons(s,FLNil())))
             override val msg: String = s
             override val item: T = a
             override fun toString(): String = show

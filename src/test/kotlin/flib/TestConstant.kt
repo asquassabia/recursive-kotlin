@@ -2,8 +2,8 @@ package flib
 
 import org.xrpn.flib.adt.FLCons
 import org.xrpn.flib.adt.FList
-import org.xrpn.flib.impl.KFList
-import org.xrpn.flib.impl.prepend
+import org.xrpn.flib.decorator.KFList
+import org.xrpn.flib.decorator.prepend
 
 const val LARGE_DEPTH = 5000
 const val XLARGE_DEPTH = 10000

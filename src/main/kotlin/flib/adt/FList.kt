@@ -1,8 +1,5 @@
 package org.xrpn.flib.adt
 
-import org.xrpn.flib.FLK
-import org.xrpn.flib.pattern.Kind
-
 /**
  * FList is a recursive list defined in terms of this ADT (Algebraic Data
  * Type).
@@ -20,15 +17,12 @@ import org.xrpn.flib.pattern.Kind
  *    Without the 'out' bound, neither super- nor subtypes of A, but only A
  *    types (strictly A), would be allowed in FList
  */
-sealed interface FList<in T>: FLK<T>
+sealed interface FList<T>: FLK<T>
 
 /**
- * List element with no content. Marks the end of the list. [Nothing] is
- * a subtype of all types. Since [FList] is 'covariant' and [FLNil] is
- * parametrized with a type which is a subtype of all types, we can always
- * add [FLNil] to [FList].
+ * A [List] element with no content.
  */
-data object FLNil : FList<Nothing>
+class FLNil<T>: FList<T>
 
 /**
  * List element with content. A non-empty list has at least one [FLCons].
@@ -37,4 +31,4 @@ data object FLNil : FList<Nothing>
  * [FList]. Obviously, [head] is read-only and [FLCons] is immutable only
  * to the extent that [head] is also immutable.
  */
-data class FLCons<T: Any>(val head: T, val tail: FList<T>) : FList<T>, FListNonEmpty<T>
+data class FLCons<T: Any>(val head: T, val tail: FList<T>) : FList<T> //, FListNonEmpty<T>

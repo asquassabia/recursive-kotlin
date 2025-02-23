@@ -7,7 +7,7 @@ import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.xrpn.flib.adt.FLCons
-import org.xrpn.flib.impl.*
+import org.xrpn.flib.decorator.*
 
 class KFListApiTest : ExpectSpec({
 

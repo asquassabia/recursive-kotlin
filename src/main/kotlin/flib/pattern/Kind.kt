@@ -68,5 +68,5 @@ interface Kind<out F, in A> { //}: PKind<Kind<*,*>> {
      * Otherwise, [fix] must be overridden.
      */
     @Suppress("UNCHECKED_CAST")
-    fun fix(): @UnsafeVariance F = (this as F)
+    fun fix():F = (this as F)
 }

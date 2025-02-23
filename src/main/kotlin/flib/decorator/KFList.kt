@@ -1,8 +1,8 @@
 package org.xrpn.flib.decorator
 
-import org.xrpn.flib.FLK
 import org.xrpn.flib.FIX_TODO
 import org.xrpn.flib.adt.FLCons
+import org.xrpn.flib.adt.FLKDecorator
 import org.xrpn.flib.adt.FLNil
 import org.xrpn.flib.adt.FList
 import org.xrpn.flib.adt.FNel
@@ -25,7 +25,7 @@ import org.xrpn.flib.internal.shredset.SizeMe
 data class KFList<A: Any> private constructor(
     /** delegate that holds implementation code used for the API */
     internal val ops: FLKShreds<A> = FLKShreds.build<A>()
-) : FLK<A>, IdMe, SizeMe {
+) : FLKDecorator<A>, IdMe, SizeMe {
     /** empty by default */
     private val list: FList<A> by lazy { llist }
     private lateinit var llist: FList<A>
@@ -52,31 +52,20 @@ data class KFList<A: Any> private constructor(
         )} == true
     override fun hashCode(): Int = hash
     override fun toString(): String = show
-    override fun fix(): FList<A> = when (val fl = list) {
-        is FLNil -> fl
-        is FNel -> fl.nel
-        is FLCons -> TODO("$FIX_TODO impossible code path")
-    }
+    override fun fix(): FList<A> = list
     @Suppress("UNCHECKED_CAST")
-    fun fnel(): FListNonEmpty<A> = list as? FListNonEmpty<A> ?: throw IllegalStateException("Non empty list expected when list is empty")
+    fun fnel(): FListNonEmpty<A> =
+        if (list is FLCons<A>) FNel.of(list as FLCons<A>,this)
+        else throw IllegalStateException("Non empty list expected when list is empty")
 
     companion object {
         /** Builder of empty [KFList]<[T1]> */
-        @Suppress("UNCHECKED_CAST")
-        fun <T1 : Any> of(): KFList<T1> = KFList<T1>().also { it.llist = FLNil as FList<T1> }
+        fun <T1 : Any> of(): KFList<T1> = KFList<T1>().also { it.llist = FLNil<T1>() }
 
         /** Builder of [KFList]<[T2]> with content [flist]. */
         fun <T2 : Any> of(flist: FList<T2>): KFList<T2> = when (flist) {
             is FLNil ->  of()
-            is FLCons -> KFList<T2>().also { it.llist = FNel.of(flist, it) }
-            is FNel -> KFList<T2>().also {
-                /*
-                 * This allows the same FList to be shared between two different
-                 * instances of KFList. As long as FList is immutable, meaning,
-                 * T2 is also immutable, the behavior is safe.
-                 */
-                it.llist = FNel.of(flist.nel,it)
-            }
+            is FLCons -> KFList<T2>().also { it.llist = flist }
         }
 
         /**
