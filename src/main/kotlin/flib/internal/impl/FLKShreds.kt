@@ -6,7 +6,7 @@ import org.xrpn.flib.adt.FLK
 import org.xrpn.flib.adt.FLKDecorator
 import org.xrpn.flib.adt.FLNil
 import org.xrpn.flib.adt.FList
-import org.xrpn.flib.decorator.KFList
+import org.xrpn.flib.decorator.SFList
 import org.xrpn.flib.internal.effect.FLibLog
 import org.xrpn.flib.internal.shredset.FSequence
 import org.xrpn.flib.pattern.Kind
@@ -18,7 +18,7 @@ internal interface FLKShreds<T: Any>: FSequence<FList<*>, T> {
             // is FNel<T> -> FNel.of(FLCons(item,this.fix()), this.kind)
             is FLCons<T> -> FLCons(item,this)
             is FLNil -> FLCons(item,FLNil())
-            is FLKDecorator<T> -> KFList.of(FLCons(item,this.fix()))
+            is FLKDecorator<T> -> SFList.of(FLCons(item,this.fix()))
         }
 
 //        private fun <T: Any> FLK<T>.of(fl: FList<T>): FLK<T> = when (this) {
@@ -41,19 +41,19 @@ internal interface FLKShreds<T: Any>: FSequence<FList<*>, T> {
             is FLCons -> when (flk) {
                 is FLCons -> this
                 // is FNel -> FNel.of(this, null)
-                is FLKDecorator -> KFList.of(this)
+                is FLKDecorator -> SFList.of(this)
                 is FLNil -> this
             }
             is FLNil -> when (flk) {
                 is FLCons -> this
                 // is FNel -> TODO("$FIX_TODO impossible code path")
-                is FLKDecorator -> KFList.of()
+                is FLKDecorator -> SFList.of()
                 is FLNil -> this
             }
         }
 
 
-        fun <T : Any> build() : FLKShreds<T> = object : FLKShreds<T>, FLibLog {
+        fun <T : Any> build(fa: Kind<FList<*>,T>) : FLKShreds<T> = object : FLKShreds<T>, FLibLog {
             override fun fsize(fa: Kind<FList<*>,T>): Int = ffoldLeft(fa, 0) { acc, _ -> acc + 1 }
             override fun fempty(fa: Kind<FList<*>,T>): Boolean = fpick(fa) == null
             override fun fequal(lhs: Kind<FList<*>,T>, rhs: Kind<FList<*>,T>): Boolean = lhs.equals(rhs)

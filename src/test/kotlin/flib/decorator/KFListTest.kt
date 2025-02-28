@@ -10,23 +10,23 @@ import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
 import org.xrpn.flib.adt.FNel
 import org.xrpn.flib.adt.FLNil
-import org.xrpn.flib.impl.KFList
-import org.xrpn.flib.impl.prepend
-import org.xrpn.flib.impl.reverse
+import org.xrpn.flib.decorator.SFList
+import org.xrpn.flib.decorator.prepend
+import org.xrpn.flib.decorator.reverse
 
 class KFListTest: ExpectSpec({
 
     context("listBuilder") {
         expect ("direct") {
-            listKindBuilder(KFList.of<Int>(),0,10).show shouldBe "FList@{10}:(0, #(1, #(2, #(3, #(4, #(5, #(6, #(7, #(8, #(9, #*)*)*)*)*)*)*)*)*)*)"
+            listKindBuilder(0,10).show shouldBe "FList@{10}:(0, #(1, #(2, #(3, #(4, #(5, #(6, #(7, #(8, #(9, #*)*)*)*)*)*)*)*)*)*)"
         }
         expect ("reverse") {
-            listKindReverseBuilder(KFList.of<Int>(),0,10).show shouldBe "FList@{10}:(9, #(8, #(7, #(6, #(5, #(4, #(3, #(2, #(1, #(0, #*)*)*)*)*)*)*)*)*)*)"
+            listKindReverseBuilder(0,10).show shouldBe "FList@{10}:(9, #(8, #(7, #(6, #(5, #(4, #(3, #(2, #(1, #(0, #*)*)*)*)*)*)*)*)*)*)"
         }
     }
 
     context("size") {
-        val aut0 = KFList.of<Int>()
+        val aut0 = SFList.of<Int>()
         val aut1 = aut0.prepend(1)
         val aut2 = aut1.prepend(2)
         val aut3 = aut2.prepend(3)
@@ -45,7 +45,7 @@ class KFListTest: ExpectSpec({
     }
 
     context("empty") {
-        val aut = KFList.of<Int>()
+        val aut = SFList.of<Int>()
         expect("true for empty") {
             aut.empty shouldBe true
         }
@@ -56,76 +56,76 @@ class KFListTest: ExpectSpec({
 
     context("toString()") {
         expect("empty list") {
-            KFList.of<Int>().toString() shouldBe "FList@{0}:"
+            SFList.of<Int>().toString() shouldBe "FList@{0}:"
         }
         expect("list of one") {
-            KFList.of<Int>().prepend(1).toString() shouldBe "FList@{1}:(1, #*)"
+            SFList.of<Int>().prepend(1).toString() shouldBe "FList@{1}:(1, #*)"
         }
         expect("list of three") {
-            KFList.of<Int>().prepend(1).prepend(2).prepend(3).toString() shouldBe "FList@{3}:(3, #(2, #(1, #*)*)*)"
+            SFList.of<Int>().prepend(1).prepend(2).prepend(3).toString() shouldBe "FList@{3}:(3, #(2, #(1, #*)*)*)"
         }
         expect("large list") {
-            listKindReverseBuilder(KFList.of<Int>(),0, LARGE_DEPTH).toString().length shouldBe 48903
+            listKindReverseBuilder(0, LARGE_DEPTH).toString().length shouldBe 48903
         }
 
     }
 
     context("hashCode()") {
         expect("empty list") {
-            KFList.of<Int>().hashCode() shouldBe 1549
+            SFList.of<Int>().hashCode() shouldBe 1549
         }
         expect("list of one") {
-            KFList.of<Int>().prepend(1).hashCode() shouldBe 48020
+            SFList.of<Int>().prepend(1).hashCode() shouldBe 48020
         }
         expect("list of three") {
-            KFList.of<Int>().prepend(1).prepend(2).prepend(3).hashCode() shouldBe 46149205
+            SFList.of<Int>().prepend(1).prepend(2).prepend(3).hashCode() shouldBe 46149205
         }
         expect("list of three reversed") {
-            KFList.of<Int>().prepend(1).prepend(2).prepend(3).reverse().hashCode() shouldBe 46147285
+            SFList.of<Int>().prepend(1).prepend(2).prepend(3).reverse().hashCode() shouldBe 46147285
         }
         expect("large list") {
-            val ll = listKindBuilder(KFList.of<Int>(),0,LARGE_DEPTH)
+            val ll = listKindBuilder(0,LARGE_DEPTH)
             ll.hashCode() shouldBe -1644694549
             ll.reverse().hashCode() shouldBe -577767472
         }
         expect("very large list") {
-            val xll = listKindBuilder(KFList.of<Int>(),0,XLARGE_DEPTH)
+            val xll = listKindBuilder(0,XLARGE_DEPTH)
             xll.hashCode() shouldBe -565784471
             xll.reverse().hashCode() shouldBe -447314914
         }
         expect("enormous list") {
-            val xxll = listKindBuilder(KFList.of<Int>(),0,1000000)
+            val xxll = listKindBuilder(0,1000000)
             (xxll.hashCode() == xxll.reverse().hashCode()) shouldBe false
         }
     }
 
     context("eq: KWriter<B>uals()") {
         expect("empty list (this is unfortunate)") {
-            KFList.of<Int>().equals(KFList.of<Int>()) shouldBe true
-            KFList.of<Int>().equals(KFList.of<String>()) shouldBe /* unfortunately */ true
+            SFList.of<Int>().equals(SFList.of<Int>()) shouldBe true
+            SFList.of<Int>().equals(SFList.of<String>()) shouldBe /* unfortunately */ true
         }
         expect("list of one") {
-            KFList.of<Int>().prepend(1).equals(KFList.of<Int>().prepend(1)) shouldBe true
-            KFList.of<String>().prepend("A").equals(KFList.of<String>().prepend("A")) shouldBe true
-            KFList.of<Int>().prepend(2).equals(KFList.of<Int>().prepend(1)) shouldBe false
-            KFList.of<String>().prepend("B").equals(KFList.of<String>().prepend("A")) shouldBe false
+            SFList.of<Int>().prepend(1).equals(SFList.of<Int>().prepend(1)) shouldBe true
+            SFList.of<String>().prepend("A").equals(SFList.of<String>().prepend("A")) shouldBe true
+            SFList.of<Int>().prepend(2).equals(SFList.of<Int>().prepend(1)) shouldBe false
+            SFList.of<String>().prepend("B").equals(SFList.of<String>().prepend("A")) shouldBe false
         }
         expect("list of three") {
-            KFList.of<Int>().prepend(1).prepend(2).prepend(3).equals(KFList.of<Int>().prepend(1).prepend(2).prepend(3)) shouldBe true
-            KFList.of<String>().prepend("A").prepend("B").prepend("C").equals(KFList.of<String>().prepend("A").prepend("B").prepend("C")) shouldBe true
-            KFList.of<Int>().prepend(1).prepend(1).prepend(3).equals(KFList.of<Int>().prepend(1).prepend(2).prepend(3)) shouldBe false
-            KFList.of<String>().prepend("A").prepend("A").prepend("C").equals(KFList.of<String>().prepend("A").prepend("B").prepend("C")) shouldBe false
+            SFList.of<Int>().prepend(1).prepend(2).prepend(3).equals(SFList.of<Int>().prepend(1).prepend(2).prepend(3)) shouldBe true
+            SFList.of<String>().prepend("A").prepend("B").prepend("C").equals(SFList.of<String>().prepend("A").prepend("B").prepend("C")) shouldBe true
+            SFList.of<Int>().prepend(1).prepend(1).prepend(3).equals(SFList.of<Int>().prepend(1).prepend(2).prepend(3)) shouldBe false
+            SFList.of<String>().prepend("A").prepend("A").prepend("C").equals(SFList.of<String>().prepend("A").prepend("B").prepend("C")) shouldBe false
         }
         expect("equals of large") {
-            val a = listKindReverseBuilder(KFList.of<Int>(),0,LARGE_DEPTH)
-            val b = listKindReverseBuilder(KFList.of<Int>(),0,LARGE_DEPTH)
+            val a = listKindReverseBuilder(0,LARGE_DEPTH)
+            val b = listKindReverseBuilder(0,LARGE_DEPTH)
             (a == b) shouldBe true
             val c = a.prepend(1)
             (b == c) shouldBe false
         }
         expect("equals of xlarge") {
-            val a = listKindReverseBuilder(KFList.of<Int>(),0,XLARGE_DEPTH)
-            val b = listKindReverseBuilder(KFList.of<Int>(),0,XLARGE_DEPTH)
+            val a = listKindReverseBuilder(0,XLARGE_DEPTH)
+            val b = listKindReverseBuilder(0,XLARGE_DEPTH)
             (a == b) shouldBe true
             val c = a.prepend(1)
             (b == c) shouldBe false
@@ -134,48 +134,48 @@ class KFListTest: ExpectSpec({
 
     context("==, ===") {
         expect("empty list (this is unfortunate)") {
-            (KFList.of<Int>() == KFList.of<Int>()) shouldBe true
-            (KFList.of<Int>() == KFList.of<String>()) shouldBe /* unfortunately */ true
-            (KFList.of<Int>() === KFList.of<Int>()) shouldBe false
-            (KFList.of<Int>() === KFList.of<String>()) shouldBe false
+            (SFList.of<Int>() == SFList.of<Int>()) shouldBe true
+            (SFList.of<Int>() == SFList.of<String>()) shouldBe /* unfortunately */ true
+            (SFList.of<Int>() === SFList.of<Int>()) shouldBe false
+            (SFList.of<Int>() === SFList.of<String>()) shouldBe false
         }
         expect("list of one") {
-            (KFList.of<Int>().prepend(1) == KFList.of<Int>().prepend(1)) shouldBe true
-            (KFList.of<String>().prepend("A") == KFList.of<String>().prepend("A")) shouldBe true
-            (KFList.of<Int>().prepend(2) != KFList.of<Int>().prepend(1)) shouldBe true
-            (KFList.of<String>().prepend("B") != KFList.of<String>().prepend("A")) shouldBe true
+            (SFList.of<Int>().prepend(1) == SFList.of<Int>().prepend(1)) shouldBe true
+            (SFList.of<String>().prepend("A") == SFList.of<String>().prepend("A")) shouldBe true
+            (SFList.of<Int>().prepend(2) != SFList.of<Int>().prepend(1)) shouldBe true
+            (SFList.of<String>().prepend("B") != SFList.of<String>().prepend("A")) shouldBe true
         }
         expect("list of three") {
-            (KFList.of<Int>().prepend(1).prepend(2).prepend(3) == KFList.of<Int>().prepend(1).prepend(2).prepend(3)) shouldBe true
-            (KFList.of<String>().prepend("A").prepend("B").prepend("C") == KFList.of<String>().prepend("A").prepend("B").prepend("C")) shouldBe true
-            (KFList.of<Int>().prepend(1).prepend(1).prepend(3) != KFList.of<Int>().prepend(1).prepend(2).prepend(3)) shouldBe true
-            (KFList.of<String>().prepend("A").prepend("A").prepend("C") != KFList.of<String>().prepend("A").prepend("B").prepend("C")) shouldBe true
+            (SFList.of<Int>().prepend(1).prepend(2).prepend(3) == SFList.of<Int>().prepend(1).prepend(2).prepend(3)) shouldBe true
+            (SFList.of<String>().prepend("A").prepend("B").prepend("C") == SFList.of<String>().prepend("A").prepend("B").prepend("C")) shouldBe true
+            (SFList.of<Int>().prepend(1).prepend(1).prepend(3) != SFList.of<Int>().prepend(1).prepend(2).prepend(3)) shouldBe true
+            (SFList.of<String>().prepend("A").prepend("A").prepend("C") != SFList.of<String>().prepend("A").prepend("B").prepend("C")) shouldBe true
         }
     }
 
     context("fix") {
         expect("return internal list") {
-            val fl = flistBuilder(FLNil,0,10)
-            val kfl = KFList.of(fl)
+            val fl = flistBuilder(0,10)
+            val kfl = SFList.of(fl)
             kfl.fix() shouldBe fl
             (kfl.fix() === fl) shouldBe true
         }
         expect("return empty") {
-            val kfl = KFList.of<Int>()
-            kfl.fix() shouldBe FLNil
-            (kfl.fix() === FLNil) shouldBe true
+            val kfl = SFList.of<Int>()
+            kfl.fix() shouldBe FLNil<Int>()
+            (kfl.fix() === FLNil<Int>()) shouldBe true
         }
     }
 
     context("fnel") {
         expect("return internal list") {
-            val fl = flistBuilder(FLNil,0,10)
-            val kfl = KFList.of(fl)
-            kfl.fnel().kind shouldBe kfl
+            val fl = flistBuilder(0,10)
+            val kfl = SFList.of(fl)
             (kfl.fnel() as FNel).nel shouldBe fl
+            (kfl.fnel() as FNel).kind shouldBe kfl
         }
         expect("return ???") {
-            val kfl = KFList.of<Int>()
+            val kfl = SFList.of<Int>()
             shouldThrow<IllegalStateException> {
                 kfl.fnel()
             }

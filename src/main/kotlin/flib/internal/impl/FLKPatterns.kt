@@ -6,7 +6,8 @@ import org.xrpn.flib.adt.FLK
 import org.xrpn.flib.adt.FLKDecorator
 import org.xrpn.flib.adt.FLNil
 import org.xrpn.flib.adt.FList
-import org.xrpn.flib.decorator.KFList
+import org.xrpn.flib.api.foldLeft
+import org.xrpn.flib.decorator.SFList
 import org.xrpn.flib.internal.effect.FLibLog
 import org.xrpn.flib.pattern.KMonad
 import org.xrpn.flib.pattern.Kind
@@ -16,7 +17,7 @@ internal interface FLKPatterns<A>: KMonad<FList<*>> {
 
         private fun <T: Any> Kind<FList<*>, *>.empty(): FLK<T> = when (this) {
             is FList -> FLNil<T>()
-            is KFList -> KFList.of()
+            is SFList -> SFList.of()
             else -> TODO("$FIX_TODO impossible code path")
         }
 
@@ -24,7 +25,7 @@ internal interface FLKPatterns<A>: KMonad<FList<*>> {
             // is FNel<T> -> FNel.of(FLCons(item,this.fix()), this.kind)
             is FLCons<T> -> FLCons(item,this)
             is FLNil -> @Suppress("UNCHECKED_CAST") FLCons(item,FLNil<T>())
-            is FLKDecorator<T> -> KFList.of(FLCons(item,this.fix()))
+            is FLKDecorator<T> -> SFList.of(FLCons(item,this.fix()))
         }
 
 //        private fun <T: Any> FLK<T>.of(item: T): FLK<T> = when (this) {
@@ -71,13 +72,6 @@ internal interface FLKPatterns<A>: KMonad<FList<*>> {
                 return when (fa.fix()) {
                     is FLNil<TA> -> FLNil<TB>()
                     is FLCons<TA> -> {
-                        fun <T: Any, B> FList<T>.foldLeft(z: B, f: (B, T) -> B): B {
-                            tailrec fun go(xs: FList<T>, z: B, f: (B, T) -> B): B = when (xs) {
-                                is FLNil -> z
-                                is FLCons -> go(xs.tail, f(z, xs.head), f)
-                            }
-                            return go(this, z, f)
-                        }
                         tailrec fun go(xs: FList<TA>, out: FList<TB>): FList<TB> = when (xs) {
                             is FLNil -> out
                             is FLCons -> {

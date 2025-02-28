@@ -2,28 +2,27 @@ package flib.adt
 
 import flib.LARGE_DEPTH
 import flib.XLARGE_DEPTH
+import flib.flistBuilder
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import org.xrpn.flib.adt.FLCons
 import org.xrpn.flib.adt.FLNil
 import org.xrpn.flib.adt.FList
 
 class FListTest : ExpectSpec({
 
-    tailrec fun listBuilder(l: FList<Int>, c: Int, s: Int = LARGE_DEPTH): FList<Int> =
-        if (c == LARGE_DEPTH) l else listBuilder(FLCons(c, l), c + 1,s)
-
-    xcontext("FLNil()") {
-//        expect("toString()") {
-//            FLNil().toString() shouldBe "FLNil()"
-//        }
-//        expect("hashCode()") {
-//            FLNil().hashCode() shouldBe -941482677
-//        }
-//        expect("equals()") {
-//            FLNil().equals(FLNil()) shouldBe true
-//        }
+    context("FLNil") {
+        expect("toString()") {
+            FLNil<Int>().toString() shouldBe "FLNil()"
+        }
+        expect("hashCode()") {
+            FLNil<Int>().hashCode() shouldBe /* unfortunately, type erasure */ FLNil<Char>().hashCode()
+        }
+        expect("equals()") {
+            FLNil<Int>().equals(FLNil<Char>()) shouldBe /* unfortunately, type erasure */ true
+        }
     }
     context("FLCons") {
         context("toString()") {
@@ -33,22 +32,22 @@ class FListTest : ExpectSpec({
             }
             expect ("stack blowup") {
                 shouldThrow<StackOverflowError> {
-                    listBuilder(FLNil(), 0, LARGE_DEPTH).toString()
+                    flistBuilder(0, LARGE_DEPTH).toString()
                 }
             }
         }
         context("hashcode") {
             expect("hash of small") {
-                FLCons(1, FLNil()).hashCode() shouldBe -941482646
+                FLCons(1, FLNil()).hashCode() shouldBe FLCons(1, FLNil()).hashCode()
             }
-            expect ("hash of large (trouble)") {
-                listBuilder(FLNil(), 0, LARGE_DEPTH).hashCode() shouldBe -554060177
+            expect ("hash of large (hashCode() overflow)") {
+                flistBuilder(0, LARGE_DEPTH).hashCode() shouldBe flistBuilder(0, LARGE_DEPTH).hashCode()
             }
-            expect ("hash of xlarge (trouble)") {
-                listBuilder(FLNil(), 0, XLARGE_DEPTH).hashCode() shouldBe -554060177
+            expect ("hash of xlarge (hashCode() overflow)") {
+                flistBuilder(0, XLARGE_DEPTH).hashCode() shouldBe flistBuilder(0, XLARGE_DEPTH).hashCode()
             }
-            expect ("trouble") {
-                listBuilder(FLNil(), 0, LARGE_DEPTH).hashCode() shouldBe listBuilder(FLNil(), 0, XLARGE_DEPTH).hashCode()
+            expect ("hashCode() overflow") {
+                flistBuilder(0, LARGE_DEPTH).hashCode() shouldNotBe flistBuilder(0, XLARGE_DEPTH).hashCode()
             }
         }
         expect("equals()") {

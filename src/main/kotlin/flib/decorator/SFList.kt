@@ -1,6 +1,5 @@
 package org.xrpn.flib.decorator
 
-import org.xrpn.flib.FIX_TODO
 import org.xrpn.flib.adt.FLCons
 import org.xrpn.flib.adt.FLKDecorator
 import org.xrpn.flib.adt.FLNil
@@ -22,7 +21,7 @@ import org.xrpn.flib.internal.shredset.SizeMe
  */
 
 @ConsistentCopyVisibility // this makes the visibility of .copy() private, like the constructor
-data class KFList<A: Any> private constructor(
+data class SFList<A: Any> private constructor(
     /** delegate that holds implementation code used for the API */
     internal val ops: FLKShreds<A> = FLKShreds.build<A>()
 ) : FLKDecorator<A>, IdMe, SizeMe {
@@ -33,19 +32,19 @@ data class KFList<A: Any> private constructor(
     override val empty: Boolean by lazy { list is FLNil }
     override val show by lazy { (foldLeft("${FList::class.simpleName}@{$size}:") { str, h -> "$str($h, #" }) + "*)".repeat(size) }
     override val hash by lazy { (foldLeft(1549L) { acc: Long, h: A -> 31L * acc + h.hashCode() }).let{ (it xor (it ushr 32)).toInt() } }
-    override fun equals(other: Any?): Boolean = other?.let { (other is KFList<*>)
+    override fun equals(other: Any?): Boolean = other?.let { (other is SFList<*>)
         && (    (equal(other) && let {
                     assert(continuousMatches(this, other).let { size == it })
                     {(object : FLibLog {}).log(
                         msg = "same hash, but not equal\nthis =$show,\nother=${other.show}\nthis =$hash,\nother=${other.hash}",
-                        emitter = this@KFList
+                        emitter = this@SFList
                     )}
                     true
                 })
              || let { assert(continuousMatches(this, other).let { size != it })
                 {(object : FLibLog {}).log(
                     msg = "equal, but different hash\nthis =$show,\nother=${other.show}\nthis =$hash,\nother=${other.hash}",
-                    emitter = this@KFList
+                    emitter = this@SFList
                 )}
                 false
             }
@@ -59,21 +58,21 @@ data class KFList<A: Any> private constructor(
         else throw IllegalStateException("Non empty list expected when list is empty")
 
     companion object {
-        /** Builder of empty [KFList]<[T1]> */
-        fun <T1 : Any> of(): KFList<T1> = KFList<T1>().also { it.llist = FLNil<T1>() }
+        /** Builder of empty [SFList]<[T1]> */
+        fun <T1 : Any> of(): SFList<T1> = SFList<T1>().also { it.llist = FLNil<T1>() }
 
-        /** Builder of [KFList]<[T2]> with content [flist]. */
-        fun <T2 : Any> of(flist: FList<T2>): KFList<T2> = when (flist) {
+        /** Builder of [SFList]<[T2]> with content [flist]. */
+        fun <T2 : Any> of(flist: FList<T2>): SFList<T2> = when (flist) {
             is FLNil ->  of()
-            is FLCons -> KFList<T2>().also { it.llist = flist }
+            is FLCons -> SFList<T2>().also { it.llist = flist }
         }
 
         /**
-         * Given two [KFList] with content of undetermined type, count how many
+         * Given two [SFList] with content of undetermined type, count how many
          * matches there are before a position where the corresponding items are
          * different.
          */
-        internal tailrec fun continuousMatches(lhsTail: KFList<*>, rhsTail: KFList<*>, matchCount: Int = 0): Int = when {
+        internal tailrec fun continuousMatches(lhsTail: SFList<*>, rhsTail: SFList<*>, matchCount: Int = 0): Int = when {
             lhsTail.empty || rhsTail.empty -> matchCount // we're done, nothing left on either side
             lhsTail.head()!!::class != rhsTail.head()!!::class -> matchCount // nest elements are not same type
             lhsTail.head().hashCode() != rhsTail.head().hashCode() -> matchCount // next elements are not equal, end of continuous matches

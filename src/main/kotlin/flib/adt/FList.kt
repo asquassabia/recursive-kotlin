@@ -22,7 +22,11 @@ sealed interface FList<T>: FLK<T>
 /**
  * A [List] element with no content.
  */
-class FLNil<T>: FList<T>
+class FLNil<T>: FList<T> {
+    override fun equals(other: Any?): Boolean = other?.let { this::class == it::class } == true
+    override fun hashCode(): Int = this::class.hashCode()
+    override fun toString(): String = "FLNil()"
+}
 
 /**
  * List element with content. A non-empty list has at least one [FLCons].

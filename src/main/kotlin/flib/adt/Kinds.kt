@@ -1,11 +1,14 @@
 package org.xrpn.flib.adt
 
+import org.xrpn.flib.internal.impl.FLKShreds
 import org.xrpn.flib.pattern.Kind
 
 sealed interface FLK<T>: Kind<FList<*>, T> {
     override fun fix(): FList<T> = this as FList<T>
 }
-interface FLKDecorator<T>: FLK<T>
+internal interface FLKDecorator<T: Any>: FLK<T> {
+    // val ops: FLKShreds<T>
+}
 
 /**
  * the out projection to the parameter type of testType: fun

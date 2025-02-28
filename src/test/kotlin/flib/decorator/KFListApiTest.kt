@@ -8,6 +8,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.xrpn.flib.adt.FLCons
 import org.xrpn.flib.decorator.*
+import org.xrpn.flib.internal.IdMe
 
 class KFListApiTest : ExpectSpec({
 
@@ -18,7 +19,7 @@ class KFListApiTest : ExpectSpec({
     }
 
     context("count") {
-        val aut0 = KFList.of<Int>()
+        val aut0 = SFList.of<Int>()
         val aut1 = aut0.prepend(1)
         val aut2 = aut1.prepend(2)
         val aut3 = aut2.prepend(3)
@@ -47,14 +48,18 @@ class KFListApiTest : ExpectSpec({
     }
 
     context("equal") {
-        val autAI0 = KFList.of<Int>()
-        val autBI0 = KFList.of<Int>()
-        val autCI0 = KFList.of<Int>()
-        val autAS0 = KFList.of<String>()
-        val autBS0 = KFList.of<String>()
-        val autCS0 = KFList.of<String>()
+        val autAI0 = SFList.of<Int>()
+        val autBI0 = SFList.of<Int>()
+        val autCI0 = SFList.of<Int>()
+        val autAS0 = SFList.of<String>()
+        val autBS0 = SFList.of<String>()
+        val autCS0 = SFList.of<String>()
         expect("is true for self") {
             autAI0.equal(autAI0) shouldBe true
+            autAI0.equal(object : IdMe {
+                override val hash = autAI0.hash
+                override val show = ""
+            }) shouldBe false
         }
         expect("is true for empty") {
             autAI0.equal(autBI0) shouldBe true
@@ -112,7 +117,7 @@ class KFListApiTest : ExpectSpec({
 
     context("fold") {
         expect ("in terms of foldLeft") {
-            val aut1 = listKindBuilder(KFList.of<Int>(),0,10)
+            val aut1 = listKindBuilder(0,10)
             val fres = aut1.fold(0) { a, b -> a - b }
             val flres = aut1.foldLeft(0) { a, b -> a - b }
             val frres = aut1.foldRight(0) { a, b -> a - b }
@@ -123,52 +128,52 @@ class KFListApiTest : ExpectSpec({
 
     context("foldLeft") {
         expect("copy empty") {
-            val autI0 = KFList.of<Int>()
-            val aut = KFList.of(autI0.foldLeft(KFList.of<Int>().fix()) { l, item -> FLCons(item,l) })
+            val autI0 = SFList.of<Int>()
+            val aut = SFList.of(autI0.foldLeft(SFList.of<Int>().fix()) { l, item -> FLCons(item,l) })
             aut.size shouldBe 0
         }
         expect("copy one") {
-            val autI1 = KFList.of<Int>().prepend(1)
-            val aut = KFList.of(autI1.foldLeft(KFList.of<Int>().fix()) { l, item -> FLCons(item,l) })
+            val autI1 = SFList.of<Int>().prepend(1)
+            val aut = SFList.of(autI1.foldLeft(SFList.of<Int>().fix()) { l, item -> FLCons(item,l) })
             aut.equal(autI1) shouldBe true
         }
         expect("copy two") {
-            val autI2 = KFList.of<Int>().prepend(1).prepend(2)
-            val aut = KFList.of(autI2.foldLeft(KFList.of<Int>().fix()) { l, item -> FLCons(item,l) })
+            val autI2 = SFList.of<Int>().prepend(1).prepend(2)
+            val aut = SFList.of(autI2.foldLeft(SFList.of<Int>().fix()) { l, item -> FLCons(item,l) })
             aut.reverse().equal(autI2) shouldBe true
         }
         expect("copy three") {
-            val autI3 = KFList.of<Int>().prepend(1).prepend(2).prepend(3)
-            val aut = KFList.of(autI3.foldLeft(KFList.of<Int>().fix()) { l, item -> FLCons(item,l) })
+            val autI3 = SFList.of<Int>().prepend(1).prepend(2).prepend(3)
+            val aut = SFList.of(autI3.foldLeft(SFList.of<Int>().fix()) { l, item -> FLCons(item,l) })
             aut.reverse().equal(autI3) shouldBe true
         }
     }
 
     context("foldRight") {
         expect("copy empty") {
-            val autI0 = KFList.of<Int>()
-            val aut = KFList.of(autI0.foldRight(KFList.of<Int>().fix()) { item, l -> FLCons(item,l) })
+            val autI0 = SFList.of<Int>()
+            val aut = SFList.of(autI0.foldRight(SFList.of<Int>().fix()) { item, l -> FLCons(item,l) })
             aut.size shouldBe 0
         }
         expect("copy one") {
-            val autI1 = KFList.of<Int>().prepend(1)
-            val aut = KFList.of(autI1.foldRight(KFList.of<Int>().fix()) { item, l -> FLCons(item,l) })
+            val autI1 = SFList.of<Int>().prepend(1)
+            val aut = SFList.of(autI1.foldRight(SFList.of<Int>().fix()) { item, l -> FLCons(item,l) })
             aut.equal(autI1) shouldBe true
         }
         expect("copy two") {
-            val autI2 = KFList.of<Int>().prepend(1).prepend(2)
-            val aut = KFList.of(autI2.foldRight(KFList.of<Int>().fix()) { item, l -> FLCons(item,l) })
+            val autI2 = SFList.of<Int>().prepend(1).prepend(2)
+            val aut = SFList.of(autI2.foldRight(SFList.of<Int>().fix()) { item, l -> FLCons(item,l) })
             aut.equal(autI2) shouldBe true
         }
         expect("copy three") {
-            val autI3 = KFList.of<Int>().prepend(1).prepend(2).prepend(3)
-            val aut = KFList.of(autI3.foldRight(KFList.of<Int>().fix()) { item, l -> FLCons(item,l) })
+            val autI3 = SFList.of<Int>().prepend(1).prepend(2).prepend(3)
+            val aut = SFList.of(autI3.foldRight(SFList.of<Int>().fix()) { item, l -> FLCons(item,l) })
             aut.equal(autI3) shouldBe true
         }
     }
 
     context("head") {
-        val aut0 = KFList.of<Int>()
+        val aut0 = SFList.of<Int>()
         expect("is null for empty list") {
             aut0.head() shouldBe null
         }
@@ -199,7 +204,7 @@ class KFListApiTest : ExpectSpec({
     }
 
     context("pick") {
-        val aut0 = KFList.of<Int>()
+        val aut0 = SFList.of<Int>()
         expect("is null for empty list") {
             aut0.pick() shouldBe null
         }
@@ -214,7 +219,7 @@ class KFListApiTest : ExpectSpec({
     }
 
     context("prepend") {
-        val aut0 = KFList.of<Int>()
+        val aut0 = SFList.of<Int>()
         val aut1 = aut0.prepend(1)
         expect("one") {
             aut1.size shouldBe 1
@@ -230,7 +235,7 @@ class KFListApiTest : ExpectSpec({
             open class SupSup()
             open class Sup(): SupSup()
             class Sub() : Sup()
-            val autF0 = KFList.of<Sup>()
+            val autF0 = SFList.of<Sup>()
             val autF1 = autF0.prepend(Sup())
             autF1.size shouldBe 1
             val autF2 = autF1.prepend(Sub())
@@ -238,38 +243,38 @@ class KFListApiTest : ExpectSpec({
             val autF3 = autF2.prepend(Sup())
             autF3.size shouldBe 3
             // should not compile
-            // val autF0 = autF1.prepend(SupSup())
+            // val autF4 = autF1.prepend(SupSup())
         }
     }
 
     context("reverse") {
         expect("a distinct empty list when empty") {
-            val autI0 = KFList.of<Int>()
+            val autI0 = SFList.of<Int>()
             val autA = autI0.reverse()
             autA.empty shouldBe true
             autI0.equal(autA) shouldBe true
         }
         expect("a distinct, equal list when one element") {
-            val autI1 = KFList.of<Int>().prepend(1)
+            val autI1 = SFList.of<Int>().prepend(1)
             val autA = autI1.reverse()
             autA.size shouldBe 1
             autI1.equal(autA) shouldBe true
         }
         expect("a reversed list when two elements") {
-            val autI2 = KFList.of<Int>().prepend(1).prepend(2) // 2,1
+            val autI2 = SFList.of<Int>().prepend(1).prepend(2) // 2,1
             val autA = autI2.reverse() // 1,2
             autA.size shouldBe 2
-            autA.equal(KFList.of<Int>().prepend(2).prepend(1)) shouldBe true
+            autA.equal(SFList.of<Int>().prepend(2).prepend(1)) shouldBe true
         }
         expect("a reversed list when three elements") {
-            val autI3 = KFList.of<Int>().prepend(1).prepend(2).prepend(3)
+            val autI3 = SFList.of<Int>().prepend(1).prepend(2).prepend(3)
             val autA = autI3.reverse()
             autA.size shouldBe 3
-            autA.equal(KFList.of<Int>().prepend(3).prepend(2).prepend(1)) shouldBe true
+            autA.equal(SFList.of<Int>().prepend(3).prepend(2).prepend(1)) shouldBe true
         }
         expect("matches reversed list") {
-            val a = listKindBuilder(KFList.of<Int>(),0,LARGE_DEPTH)
-            val ar = listKindReverseBuilder(KFList.of<Int>(),0,LARGE_DEPTH)
+            val a = listKindBuilder(0,LARGE_DEPTH)
+            val ar = listKindReverseBuilder(0,LARGE_DEPTH)
             a.reverse().equal(ar) shouldBe true
         }
     }

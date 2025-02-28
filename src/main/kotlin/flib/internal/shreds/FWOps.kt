@@ -6,12 +6,12 @@ import org.xrpn.flib.adt.FWLog
 import org.xrpn.flib.adt.FWriter
 import org.xrpn.flib.adt.FWrtMsg
 import org.xrpn.flib.adt.FWrtMsgs
-import org.xrpn.flib.decorator.KFList
+import org.xrpn.flib.decorator.SFList
 import org.xrpn.flib.internal.IdMe
 
 @ConsistentCopyVisibility // this makes the visibility of .copy() private, like the constructor
 internal data class FWOps<A: Any> private constructor (
-    private val trace: KFList<String>
+    private val trace: SFList<String>
 ) { init { require(trace.ne) }
     internal val size by lazy { trace.size }
     override fun toString(): String = trace.toString()
@@ -21,7 +21,7 @@ internal data class FWOps<A: Any> private constructor (
         fun show(fw: FWriter<*>): String = (fw as FWLog<*>).log.trace.show
 
         internal fun <T: Any> of(a:T, s: String): FWrtMsg<T> = object: FWrtMsg<T>, FWLog<T>, IdMe {
-            override val log = FWOps<T>(KFList.of(FLCons(s,FLNil())))
+            override val log = FWOps<T>(SFList.of(FLCons(s,FLNil())))
             override val msg: String = s
             override val item: T = a
             override fun toString(): String = show
@@ -32,7 +32,7 @@ internal data class FWOps<A: Any> private constructor (
         }
 
         internal fun <T: Any> of(a:T, s: String, t: FWOps<*>): FWrtMsgs<T> = object: FWrtMsgs<T>, FWLog<T> {
-            override val log = FWOps<T>(KFList.of(FLCons(s,t.trace.fix())))
+            override val log = FWOps<T>(SFList.of(FLCons(s,t.trace.fix())))
             override val msg: String = s
             override val item: T = a
             override fun toString(): String = show
