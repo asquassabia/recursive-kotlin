@@ -17,7 +17,7 @@ package org.xrpn.flib.adt
  *    Without the 'out' bound, neither super- nor subtypes of A, but only A
  *    types (strictly A), would be allowed in FList
  */
-sealed interface FList<T>: FLK<T>
+sealed interface FList<T>
 
 /**
  * A [List] element with no content.

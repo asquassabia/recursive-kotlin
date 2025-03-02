@@ -60,7 +60,7 @@ package org.xrpn.flib.pattern
  * to understand, I hope, and is likely to run into trouble faster, I'm
  * afraid.
  */
-interface Kind<out F, in A> { //}: PKind<Kind<*,*>> {
+interface Kind<out F, in A> {
     /**
      * Cast [Kind]<[F],[A]> to [F] so we can 'unnest' [F] and resolve the
      * abstraction. It's called [fix] because, after all, this is a fix.

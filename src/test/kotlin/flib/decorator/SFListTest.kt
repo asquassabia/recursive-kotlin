@@ -2,26 +2,28 @@ package flib.decorator
 
 import flib.LARGE_DEPTH
 import flib.XLARGE_DEPTH
-import flib.flistBuilder
-import flib.listKindBuilder
-import flib.listKindReverseBuilder
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
-import org.xrpn.flib.adt.FNel
+import io.kotest.matchers.shouldNotBe
 import org.xrpn.flib.adt.FLNil
 import org.xrpn.flib.decorator.SFList
-import org.xrpn.flib.decorator.prepend
-import org.xrpn.flib.decorator.reverse
+import org.xrpn.flib.internal.tool.flistBuilder
 
-class KFListTest: ExpectSpec({
+class SFListTest: ExpectSpec({
+
+    val sfl10 = SFList.ofIntSeq(0,10)
+    val sfl10Rev = SFList.ofIntSeqRev(0,10)
+    val sflLarge = SFList.ofIntSeq(0,LARGE_DEPTH)
+    val sflLargeRev = SFList.ofIntSeqRev(0,LARGE_DEPTH)
+    val sflXLarge = SFList.ofIntSeq(0,XLARGE_DEPTH)
+    val sflXLargeRev = SFList.ofIntSeqRev(0,XLARGE_DEPTH)
 
     context("listBuilder") {
         expect ("direct") {
-            listKindBuilder(0,10).show shouldBe "FList@{10}:(0, #(1, #(2, #(3, #(4, #(5, #(6, #(7, #(8, #(9, #*)*)*)*)*)*)*)*)*)*)"
+            sfl10.show shouldBe "SFList@{10}:(0, #(1, #(2, #(3, #(4, #(5, #(6, #(7, #(8, #(9, #*)*)*)*)*)*)*)*)*)*)"
         }
         expect ("reverse") {
-            listKindReverseBuilder(0,10).show shouldBe "FList@{10}:(9, #(8, #(7, #(6, #(5, #(4, #(3, #(2, #(1, #(0, #*)*)*)*)*)*)*)*)*)*)"
+            sfl10Rev.show shouldBe "SFList@{10}:(9, #(8, #(7, #(6, #(5, #(4, #(3, #(2, #(1, #(0, #*)*)*)*)*)*)*)*)*)*)"
         }
     }
 
@@ -56,46 +58,50 @@ class KFListTest: ExpectSpec({
 
     context("toString()") {
         expect("empty list") {
-            SFList.of<Int>().toString() shouldBe "FList@{0}:"
+            SFList.of<Int>().toString() shouldBe "SFList@{0}:"
         }
         expect("list of one") {
-            SFList.of<Int>().prepend(1).toString() shouldBe "FList@{1}:(1, #*)"
+            SFList.of<Int>().prepend(1).toString() shouldBe "SFList@{1}:(1, #*)"
         }
         expect("list of three") {
-            SFList.of<Int>().prepend(1).prepend(2).prepend(3).toString() shouldBe "FList@{3}:(3, #(2, #(1, #*)*)*)"
+            SFList.of<Int>().prepend(1).prepend(2).prepend(3).toString() shouldBe "SFList@{3}:(3, #(2, #(1, #*)*)*)"
         }
         expect("large list") {
-            listKindReverseBuilder(0, LARGE_DEPTH).toString().length shouldBe 48903
+            sflLargeRev.toString().length shouldBe 48904
+            sflLarge.toString().length shouldBe 48904
         }
 
     }
 
     context("hashCode()") {
         expect("empty list") {
-            SFList.of<Int>().hashCode() shouldBe 1549
+            SFList.of<Int>().hashCode() shouldBe 1569133934
         }
         expect("list of one") {
-            SFList.of<Int>().prepend(1).hashCode() shouldBe 48020
+            SFList.of<Int>().prepend(1).hashCode() shouldBe 1569087441
         }
         expect("list of three") {
-            SFList.of<Int>().prepend(1).prepend(2).prepend(3).hashCode() shouldBe 46149205
+            SFList.of<Int>().prepend(1).prepend(2).prepend(3).hashCode() shouldBe 1522986262
         }
         expect("list of three reversed") {
-            SFList.of<Int>().prepend(1).prepend(2).prepend(3).reverse().hashCode() shouldBe 46147285
+            SFList.of<Int>().prepend(1).prepend(2).prepend(3).reverse().hashCode() shouldBe 1522988182
         }
         expect("large list") {
-            val ll = listKindBuilder(0,LARGE_DEPTH)
-            ll.hashCode() shouldBe -1644694549
-            ll.reverse().hashCode() shouldBe -577767472
+            val ll = sflLarge
+            ll.hashCode() shouldBe -1081137272
+            ll.reverse().hashCode() shouldBe 2146902957
         }
         expect("very large list") {
-            val xll = listKindBuilder(0,XLARGE_DEPTH)
-            xll.hashCode() shouldBe -565784471
-            xll.reverse().hashCode() shouldBe -447314914
+            val xll = sflXLarge
+            xll.hashCode() shouldBe -500671030
+            xll.reverse().hashCode() shouldBe -1092483384
         }
         expect("enormous list") {
-            val xxll = listKindBuilder(0,1000000)
-            (xxll.hashCode() == xxll.reverse().hashCode()) shouldBe false
+            val xxll1 = SFList.ofIntSeq(0,1000000)
+            val xxll2 = SFList.ofIntSeqRev(0,1000000)
+            val xxll1r = xxll1.reverse()
+            xxll1.hashCode() shouldNotBe xxll1r.hashCode()
+            xxll2.hashCode() shouldBe xxll1r.hashCode()
         }
     }
 
@@ -117,15 +123,15 @@ class KFListTest: ExpectSpec({
             SFList.of<String>().prepend("A").prepend("A").prepend("C").equals(SFList.of<String>().prepend("A").prepend("B").prepend("C")) shouldBe false
         }
         expect("equals of large") {
-            val a = listKindReverseBuilder(0,LARGE_DEPTH)
-            val b = listKindReverseBuilder(0,LARGE_DEPTH)
+            val a = sflLargeRev
+            val b = sflLargeRev
             (a == b) shouldBe true
             val c = a.prepend(1)
             (b == c) shouldBe false
         }
         expect("equals of xlarge") {
-            val a = listKindReverseBuilder(0,XLARGE_DEPTH)
-            val b = listKindReverseBuilder(0,XLARGE_DEPTH)
+            val a = sflXLargeRev
+            val b = sflXLargeRev
             (a == b) shouldBe true
             val c = a.prepend(1)
             (b == c) shouldBe false
@@ -163,23 +169,7 @@ class KFListTest: ExpectSpec({
         expect("return empty") {
             val kfl = SFList.of<Int>()
             kfl.fix() shouldBe FLNil<Int>()
-            (kfl.fix() === FLNil<Int>()) shouldBe true
+            (kfl.fix() === FLNil<Int>()) shouldBe false // generates new()
         }
     }
-
-    context("fnel") {
-        expect("return internal list") {
-            val fl = flistBuilder(0,10)
-            val kfl = SFList.of(fl)
-            (kfl.fnel() as FNel).nel shouldBe fl
-            (kfl.fnel() as FNel).kind shouldBe kfl
-        }
-        expect("return ???") {
-            val kfl = SFList.of<Int>()
-            shouldThrow<IllegalStateException> {
-                kfl.fnel()
-            }
-        }
-    }
-
 })

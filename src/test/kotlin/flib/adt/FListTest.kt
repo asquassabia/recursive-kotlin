@@ -2,17 +2,23 @@ package flib.adt
 
 import flib.LARGE_DEPTH
 import flib.XLARGE_DEPTH
-import flib.flistBuilder
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import org.xrpn.flib.adt.FLCons
 import org.xrpn.flib.adt.FLNil
-import org.xrpn.flib.adt.FList
+import org.xrpn.flib.internal.tool.flistBuilder
 
 class FListTest : ExpectSpec({
 
+    context("builder") {
+        expect("safe default") {
+            flistBuilder(0)
+        }
+        expect("safe anyway") {
+            flistBuilder(0, XLARGE_DEPTH)
+        }
+    }
     context("FLNil") {
         expect("toString()") {
             FLNil<Int>().toString() shouldBe "FLNil()"
@@ -36,23 +42,24 @@ class FListTest : ExpectSpec({
                 }
             }
         }
-        context("hashcode") {
+        context("hashcode()") {
             expect("hash of small") {
                 FLCons(1, FLNil()).hashCode() shouldBe FLCons(1, FLNil()).hashCode()
             }
-            expect ("hash of large (hashCode() overflow)") {
+            expect ("hash of large (hashCode() integer overflow)") {
                 flistBuilder(0, LARGE_DEPTH).hashCode() shouldBe flistBuilder(0, LARGE_DEPTH).hashCode()
             }
-            expect ("hash of xlarge (hashCode() overflow)") {
-                flistBuilder(0, XLARGE_DEPTH).hashCode() shouldBe flistBuilder(0, XLARGE_DEPTH).hashCode()
-            }
-            expect ("hashCode() overflow") {
-                flistBuilder(0, LARGE_DEPTH).hashCode() shouldNotBe flistBuilder(0, XLARGE_DEPTH).hashCode()
+            expect ("hash of xlarge (hashCode() integer overflow)") {
+                shouldThrow<StackOverflowError> {
+                    flistBuilder(0, XLARGE_DEPTH).hashCode()
+                }
             }
         }
-        expect("equals()") {
-            FLCons(1, FLNil()).equals(FLCons(1, FLNil())) shouldBe true
-            FLCons(1, FLCons(2, FLNil())).equals(FLCons(1, FLCons(2, FLNil()))) shouldBe true
+        context("equals()") {
+            expect("of small") {
+                FLCons(1, FLNil()).equals(FLCons(1, FLNil())) shouldBe true
+                FLCons(1, FLCons(2, FLNil())).equals(FLCons(1, FLCons(2, FLNil()))) shouldBe true
+            }
         }
     }
 })

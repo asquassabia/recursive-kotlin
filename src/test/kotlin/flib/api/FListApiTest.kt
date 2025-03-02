@@ -1,8 +1,6 @@
 package flib.api
 
 import flib.XLARGE_DEPTH
-import flib.flistBuilder
-import flib.flistReverseBuilder
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
@@ -27,6 +25,8 @@ import org.xrpn.flib.api.prepend
 import org.xrpn.flib.api.reverse
 import org.xrpn.flib.api.size
 import org.xrpn.flib.api.tail
+import org.xrpn.flib.internal.tool.flistBuilder
+import org.xrpn.flib.internal.tool.flistReverseBuilder
 
 class FListApiTest : ExpectSpec({
 
@@ -47,7 +47,7 @@ class FListApiTest : ExpectSpec({
     val listOf312 = FLCons(3, FLCons(1, FLCons(2, FLNil<Int>())))
     val listThousand = flistBuilder(0,1000)
     val listThousandR = flistReverseBuilder(0,1000)
-    val listHuge = flistBuilder(0, XLARGE_DEPTH)
+    val listUnsafe = flistBuilder(0, XLARGE_DEPTH)
     val seq1to100 = flistBuilder(1,101)
     val sum: (Int, Int) -> Int = { a, b -> a + b }
     val diff: (Int, Int) -> Int = { a, b -> b - a }
@@ -67,7 +67,7 @@ class FListApiTest : ExpectSpec({
             listThousand.size() shouldBe 1000
         }
         expect("list huge") {
-            listHuge.size() shouldBe XLARGE_DEPTH
+            listUnsafe.size() shouldBe XLARGE_DEPTH
         }
     }
 
@@ -85,8 +85,8 @@ class FListApiTest : ExpectSpec({
             listOf312.ne() shouldBe true
         }
         expect("list huge") {
-            listHuge.empty() shouldBe false
-            listHuge.ne() shouldBe true
+            listUnsafe.empty() shouldBe false
+            listUnsafe.ne() shouldBe true
         }
     }
 
@@ -120,8 +120,8 @@ class FListApiTest : ExpectSpec({
             aut.head() shouldBe 1
         }
         expect("list huge") {
-            listHuge.head() shouldBe 0
-            val aut = listHuge.tail()
+            listUnsafe.head() shouldBe 0
+            val aut = listUnsafe.tail()
             aut.size() shouldBe XLARGE_DEPTH-1
             aut.head() shouldBe 1
         }
@@ -158,11 +158,11 @@ class FListApiTest : ExpectSpec({
             aut.last() shouldBe 998
         }
         expect("list huge last") {
-            listHuge.last() shouldBe XLARGE_DEPTH - 1
+            listUnsafe.last() shouldBe XLARGE_DEPTH - 1
         }
         expect("list huge init") {
             shouldThrow<StackOverflowError> {
-                listHuge.init()
+                listUnsafe.init()
             }
         }
     }
@@ -190,7 +190,7 @@ class FListApiTest : ExpectSpec({
             aut.last() shouldBe 998
         }
         expect("list huge") {
-            val aut = listHuge.initSafe()
+            val aut = listUnsafe.initSafe()
             aut.size() shouldBe XLARGE_DEPTH - 1
             aut.head() shouldBe 0
             aut.last() shouldBe XLARGE_DEPTH - 2
@@ -218,7 +218,7 @@ class FListApiTest : ExpectSpec({
         }
         expect("list huge") {
             shouldThrow<StackOverflowError> {
-                listHuge.append(XLARGE_DEPTH * 2)
+                listUnsafe.append(XLARGE_DEPTH * 2)
             }
         }
     }
@@ -243,17 +243,17 @@ class FListApiTest : ExpectSpec({
             aut.last() shouldBe 2000
         }
         expect("list huge") {
-            val aut = listHuge.appendSafe(XLARGE_DEPTH*2)
+            val aut = listUnsafe.appendSafe(XLARGE_DEPTH*2)
             aut.head() shouldBe 0
             aut.size() shouldBe XLARGE_DEPTH+1
             shouldThrow<StackOverflowError> {
                 // this is a limitation for recursive equals()
-                aut.initSafe().equals(listHuge) shouldBe true
+                aut.initSafe().equals(listUnsafe) shouldBe true
                 //             ^^^^^^
             }
             shouldThrow<StackOverflowError> {
                 // this is such limitation fort the test harness
-                aut.initSafe() shouldBe listHuge
+                aut.initSafe() shouldBe listUnsafe
                 //             ^^^^^^^^
             }
             aut.last() shouldBe XLARGE_DEPTH*2
@@ -286,8 +286,8 @@ class FListApiTest : ExpectSpec({
             seq1to100.fold(0, diff) shouldBe 50
         }
         expect("list huge") {
-            listHuge.foldLeft(0, sum) shouldBe XLARGE_DEPTH * (XLARGE_DEPTH-1) / 2
-            listHuge.fold(0, sum) shouldBe XLARGE_DEPTH * (XLARGE_DEPTH-1) / 2
+            listUnsafe.foldLeft(0, sum) shouldBe XLARGE_DEPTH * (XLARGE_DEPTH-1) / 2
+            listUnsafe.fold(0, sum) shouldBe XLARGE_DEPTH * (XLARGE_DEPTH-1) / 2
         }
     }
 
@@ -312,7 +312,7 @@ class FListApiTest : ExpectSpec({
         }
         expect("list huge") {
             shouldThrow<StackOverflowError> {
-                listHuge.foldRight(0, sum)
+                listUnsafe.foldRight(0, sum)
             }
         }
     }
@@ -337,7 +337,7 @@ class FListApiTest : ExpectSpec({
             seq1to100.foldRightSafe(0, diff) shouldBe -5050
         }
         expect("list huge") {
-            listHuge.foldRightSafe(0, sum) shouldBe XLARGE_DEPTH * (XLARGE_DEPTH-1) / 2
+            listUnsafe.foldRightSafe(0, sum) shouldBe XLARGE_DEPTH * (XLARGE_DEPTH-1) / 2
         }
     }
 
@@ -356,7 +356,7 @@ class FListApiTest : ExpectSpec({
             listThousand.pick() shouldBe 0
         }
         expect("list huge") {
-            listHuge.pick() shouldBe 0
+            listUnsafe.pick() shouldBe 0
         }
     }
 
@@ -380,7 +380,7 @@ class FListApiTest : ExpectSpec({
             aut.last() shouldBe 999
         }
         expect("list huge") {
-            val aut = listHuge.prepend(XLARGE_DEPTH*2)
+            val aut = listUnsafe.prepend(XLARGE_DEPTH*2)
             aut.head() shouldBe XLARGE_DEPTH*2
             aut.size() shouldBe XLARGE_DEPTH+1
             aut.tail().head() shouldBe 0
@@ -401,7 +401,7 @@ class FListApiTest : ExpectSpec({
             listThousand.reverse() shouldBe listThousandR
         }
         expect("list huge") {
-            val aut = listHuge.reverse()
+            val aut = listUnsafe.reverse()
             aut.head() shouldBe XLARGE_DEPTH-1
             aut.size() shouldBe XLARGE_DEPTH
             aut.last() shouldBe 0
@@ -434,9 +434,9 @@ class FListApiTest : ExpectSpec({
         }
         expect("list huge") {
             isEven(XLARGE_DEPTH) shouldBe true
-            listHuge.count { true } shouldBe XLARGE_DEPTH
-            listHuge.count(isOdd) shouldBe XLARGE_DEPTH/2
-            listHuge.count(isEven) shouldBe XLARGE_DEPTH/2
+            listUnsafe.count { true } shouldBe XLARGE_DEPTH
+            listUnsafe.count(isOdd) shouldBe XLARGE_DEPTH/2
+            listUnsafe.count(isEven) shouldBe XLARGE_DEPTH/2
         }
     }
 })

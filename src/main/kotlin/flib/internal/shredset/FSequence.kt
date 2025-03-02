@@ -1,6 +1,7 @@
 package org.xrpn.flib.internal.shredset
 
 import org.xrpn.flib.internal.shred.FBuilding
+import org.xrpn.flib.internal.shred.FBuildingSafe
 import org.xrpn.flib.internal.shred.FFolding
 import org.xrpn.flib.internal.shred.FFoldingSafe
 import org.xrpn.flib.internal.shred.FSequencing
@@ -13,6 +14,7 @@ import org.xrpn.flib.internal.shred.FSequencingSafe
 internal interface FSequence<K, A : Any> :
     FBase<K, A>
     , FBuilding<K, A>
+    , FBuildingSafe<K, A>
     , FFolding<K, A>
     , FFoldingSafe<K, A>
     , FSequencing<K, A>

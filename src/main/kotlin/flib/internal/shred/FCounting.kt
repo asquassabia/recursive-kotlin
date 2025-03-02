@@ -9,4 +9,7 @@ internal interface FCounting<F, A> {
 
     /** Return true if [fa] has no elements ([fsize] is 0) */
     fun fempty(fa: Kind<F, A>): Boolean
+
+    /** Return true if [fa] has elements ([fsize] is at least 1) */
+    fun fne(fa: Kind<F, A>): Boolean
 }

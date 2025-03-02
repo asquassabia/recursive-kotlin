@@ -1,6 +1,7 @@
 package org.xrpn.flib.internal.ops
 
 import org.xrpn.flib.adt.FLCons
+import org.xrpn.flib.adt.FLKApi
 import org.xrpn.flib.adt.FLNil
 import org.xrpn.flib.adt.FWLog
 import org.xrpn.flib.adt.FWriter
@@ -11,7 +12,7 @@ import org.xrpn.flib.internal.IdMe
 
 @ConsistentCopyVisibility // this makes the visibility of .copy() private, like the constructor
 internal data class FWOps<A: Any> private constructor (
-    private val trace: SFList<String>
+    private val trace: FLKApi<String>
 ) { init { require(trace.ne) }
     internal val size by lazy { trace.size }
     override fun toString(): String = trace.toString()
@@ -28,7 +29,7 @@ internal data class FWOps<A: Any> private constructor (
             override fun hashCode(): Int =  hash
             override fun equals(other: Any?): Boolean = other?.let { it is FWrtMsg<*> && (it.item::class == item::class) && equal(it) } ?: false
             override val hash: Int by lazy { 31 * item.hashCode() + log.trace.hash }
-            override val show: String by lazy { show(this) }
+            override val show: String by lazy { "FWrtMsg(item=$item, msg='$s')" }
         }
 
         internal fun <T: Any> of(a:T, s: String, t: FWOps<*>): FWrtMsgs<T> = object: FWrtMsgs<T>, FWLog<T> {
@@ -39,7 +40,7 @@ internal data class FWOps<A: Any> private constructor (
             override fun hashCode(): Int = hash
             override fun equals(other: Any?): Boolean = other?.let { it is FWrtMsgs<*> && (it.item::class == item::class) && equal(it)} ?: false
             override val hash: Int by lazy { 31 * item.hashCode() + log.trace.hash }
-            override val show: String by lazy { show(this) }
+            override val show: String by lazy { "FWrtMsgs(item=$item, log=${show(this)})" }
         }
     }
 }

@@ -1,14 +1,30 @@
 package org.xrpn.flib.adt
 
-import org.xrpn.flib.internal.impl.FLKShreds
+import org.xrpn.flib.internal.IdMe
+import org.xrpn.flib.internal.shredset.SizeMe
 import org.xrpn.flib.pattern.Kind
 
 sealed interface FLK<T>: Kind<FList<*>, T> {
+    @Suppress("UNCHECKED_CAST")
     override fun fix(): FList<T> = this as FList<T>
 }
-internal interface FLKDecorator<T: Any>: FLK<T> {
-    // val ops: FLKShreds<T>
+
+interface FListSafe<A: Any>: FLK<A>
+interface FListApi<T: Any>: IdMe, SizeMe {
+    fun append(item: T): FListSafe<T>
+    fun count(isMatch: (T) -> Boolean): Int
+    fun <B> fold(z: B, f: (B, T) -> B): B
+    fun <B> foldLeft(z: B, f: (B, T) -> B): B
+    fun <B> foldRight(z: B, f: (T, B) -> B): B
+    fun head(): T?
+    fun init(): FLKApi<T>
+    fun last(): T?
+    fun pick(): T?
+    fun prepend(item: T): FLKApi<T>
+    fun reverse(): FLKApi<T>
+    fun tail(): FLKApi<T>
 }
+interface FLKApi<A: Any>: FListSafe<A>, FListApi<A>
 
 /**
  * the out projection to the parameter type of testType: fun

@@ -1,6 +1,7 @@
 package org.xrpn.flib.internal.tool
 
 import arrow.atomic.AtomicBoolean
+import org.xrpn.flib.CAPTURE_SIZE
 import org.xrpn.flib.FIX_TODO
 import java.io.ByteArrayOutputStream
 import java.io.Closeable
@@ -156,7 +157,7 @@ data class Capture private constructor (
                 errBuffer.close()
             }
             companion object {
-                fun build(initSize: Int = CAPTURE_SIZE): StdBuffers =
+                fun build(initSize: Int = CAPTURE_SIZE.get()): StdBuffers =
                     StdBuffers(ByteArrayOutputStream(initSize), ByteArrayOutputStream(initSize))
             }
         }

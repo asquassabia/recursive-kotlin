@@ -1,10 +1,9 @@
 package flib.effect
 
-import flib.testtool.CaptureSpec
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
+import org.xrpn.flib.CAPTURE_SIZE
 import org.xrpn.flib.internal.effect.FLibLog
-import org.xrpn.flib.internal.tool.CAPTURE_SIZE
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 
@@ -13,7 +12,7 @@ internal class FLibErrLogTest : ExpectSpec({
     threads = 1
     context("errLog") {
         expect("to stdErr") {
-            val baos = ByteArrayOutputStream(CAPTURE_SIZE)
+            val baos = ByteArrayOutputStream(CAPTURE_SIZE.get())
             val capture = PrintStream(baos,true)
             capture.use { cap -> baos.use { buf ->
             val aut = object : FLibLog {}
@@ -24,7 +23,7 @@ internal class FLibErrLogTest : ExpectSpec({
             }}
         }
         expect("null emitter") {
-            val baos = ByteArrayOutputStream(CAPTURE_SIZE)
+            val baos = ByteArrayOutputStream(CAPTURE_SIZE.get())
             val capture = PrintStream(baos,true)
             capture.use { cap -> baos.use { buf ->
             val aut = object : FLibLog {}
@@ -35,7 +34,7 @@ internal class FLibErrLogTest : ExpectSpec({
             }}
         }
         expect("no new line") {
-            val baos = ByteArrayOutputStream(CAPTURE_SIZE)
+            val baos = ByteArrayOutputStream(CAPTURE_SIZE.get())
             val capture = PrintStream(baos,true)
             capture.use { cap -> baos.use { buf ->
             val aut = object : FLibLog {}
@@ -46,7 +45,7 @@ internal class FLibErrLogTest : ExpectSpec({
             }}
         }
         expect("reportException") {
-            val baos = ByteArrayOutputStream(CAPTURE_SIZE)
+            val baos = ByteArrayOutputStream(CAPTURE_SIZE.get())
             val capture = PrintStream(baos,true)
             capture.use { cap -> baos.use { buf ->
                 val aut = object : FLibLog {}

@@ -1,15 +1,20 @@
 package org.xrpn.flib.decorator
 
-import org.xrpn.flib.adt.FLCons
-import org.xrpn.flib.adt.FLKDecorator
+import org.xrpn.flib.EQUALS_DEBUG
+import org.xrpn.flib.SAFE_RECURSION_SIZE
+import org.xrpn.flib.adt.FListApi
 import org.xrpn.flib.adt.FLNil
 import org.xrpn.flib.adt.FList
-import org.xrpn.flib.adt.FNel
-import org.xrpn.flib.adt.FListNonEmpty
-import org.xrpn.flib.internal.effect.FLibLog
+import org.xrpn.flib.adt.FLKApi
+import org.xrpn.flib.adt.FListSafe
+import org.xrpn.flib.api.size
 import org.xrpn.flib.internal.IdMe
+import org.xrpn.flib.internal.effect.FLibLog
 import org.xrpn.flib.internal.impl.FLKShreds
 import org.xrpn.flib.internal.shredset.SizeMe
+import org.xrpn.flib.internal.tool.continuousMatches
+import org.xrpn.flib.internal.tool.flistBuilder
+import org.xrpn.flib.internal.tool.flistReverseBuilder
 
 /**
  * A utility wrapper that provides boilerplate functionality for [FList] without
@@ -22,61 +27,71 @@ import org.xrpn.flib.internal.shredset.SizeMe
 
 @ConsistentCopyVisibility // this makes the visibility of .copy() private, like the constructor
 data class SFList<A: Any> private constructor(
-    /** delegate that holds implementation code used for the API */
-    internal val ops: FLKShreds<A> = FLKShreds.build<A>()
-) : FLKDecorator<A>, IdMe, SizeMe {
-    /** empty by default */
-    private val list: FList<A> by lazy { llist }
-    private lateinit var llist: FList<A>
-    override val size: Int by lazy { ops.fsize(this) }
-    override val empty: Boolean by lazy { list is FLNil }
-    override val show by lazy { (foldLeft("${FList::class.simpleName}@{$size}:") { str, h -> "$str($h, #" }) + "*)".repeat(size) }
-    override val hash by lazy { (foldLeft(1549L) { acc: Long, h: A -> 31L * acc + h.hashCode() }).let{ (it xor (it ushr 32)).toInt() } }
-    override fun equals(other: Any?): Boolean = other?.let { (other is SFList<*>)
-        && (    (equal(other) && let {
-                    assert(continuousMatches(this, other).let { size == it })
-                    {(object : FLibLog {}).log(
-                        msg = "same hash, but not equal\nthis =$show,\nother=${other.show}\nthis =$hash,\nother=${other.hash}",
-                        emitter = this@SFList
-                    )}
-                    true
-                })
-             || let { assert(continuousMatches(this, other).let { size != it })
-                {(object : FLibLog {}).log(
-                    msg = "equal, but different hash\nthis =$show,\nother=${other.show}\nthis =$hash,\nother=${other.hash}",
-                    emitter = this@SFList
-                )}
-                false
-            }
-        )} == true
+    private val list: FList<A>,
+    private val shallowEquals: Boolean = true,
+    private var ops: FListApi<A>? = null
+): FListSafe<A>, IdMe, SizeMe {
+    override val size: Int = list.size()
+    override val hash: Int by lazy { (31L * SFList::class.simpleName!!.hashCode().toLong() + ops!!.hash.toLong()).let{ (it xor (it ushr 32)).toInt() } }
+    override val show: String by lazy { ops!!.show }
+    override val empty: Boolean by lazy { ops!!.empty }
+    override val ne: Boolean by lazy { ops!!.ne  }
     override fun hashCode(): Int = hash
     override fun toString(): String = show
+    // override fun fix(): FList<A> = list
+    override fun equals(other: Any?): Boolean = other?.let { (it as? SFList<*>)?.let {
+        if (EQUALS_DEBUG.get()) {
+            if(equal(it)) {
+                val otherSize = continuousMatches(list, it.list)
+                assert (size == otherSize) {(object : FLibLog {}).log(
+                    msg = "same hash, but not equal\nthis =$show,\nother=${it.show}\nthis =$hash,\nother=${it.hash}",
+                    emitter = this@SFList
+                )}
+                true
+            } else false
+        } else equal(it) && (shallowEquals || size == continuousMatches(list, it.list))
+    }} == true
     override fun fix(): FList<A> = list
-    @Suppress("UNCHECKED_CAST")
-    fun fnel(): FListNonEmpty<A> =
-        if (list is FLCons<A>) FNel.of(list as FLCons<A>,this)
-        else throw IllegalStateException("Non empty list expected when list is empty")
 
     companion object {
         /** Builder of empty [SFList]<[T1]> */
-        fun <T1 : Any> of(): SFList<T1> = SFList<T1>().also { it.llist = FLNil<T1>() }
+        fun <T1 : Any> of(): FLKApi<T1> {
+            val sfl = SFList<T1>(FLNil<T1>())
+            sfl.ops = if (sfl.size < SAFE_RECURSION_SIZE.get()) FLKShreds.buildApi(sfl) else FLKShreds.buildSafeApi(sfl)
+            return SFListAlias(sfl) as FLKApi<T1>
+        }
 
         /** Builder of [SFList]<[T2]> with content [flist]. */
-        fun <T2 : Any> of(flist: FList<T2>): SFList<T2> = when (flist) {
-            is FLNil ->  of()
-            is FLCons -> SFList<T2>().also { it.llist = flist }
+        fun <T2 : Any> of(flist: FList<T2>, deepEquals: Boolean = false): FLKApi<T2> {
+            val sfl = SFList<T2>(flist,!deepEquals)
+            sfl.ops = if (sfl.size < SAFE_RECURSION_SIZE.get()) FLKShreds.buildApi(sfl) else FLKShreds.buildSafeApi(sfl)
+            return SFListAlias(sfl) as FLKApi<T2>
         }
 
-        /**
-         * Given two [SFList] with content of undetermined type, count how many
-         * matches there are before a position where the corresponding items are
-         * different.
-         */
-        internal tailrec fun continuousMatches(lhsTail: SFList<*>, rhsTail: SFList<*>, matchCount: Int = 0): Int = when {
-            lhsTail.empty || rhsTail.empty -> matchCount // we're done, nothing left on either side
-            lhsTail.head()!!::class != rhsTail.head()!!::class -> matchCount // nest elements are not same type
-            lhsTail.head().hashCode() != rhsTail.head().hashCode() -> matchCount // next elements are not equal, end of continuous matches
-            else -> continuousMatches(lhsTail.tail(), rhsTail.tail(), /* match: heads are equal */matchCount + 1)
+        fun ofIntSeq(offset:Int, top:Int, deepEquals: Boolean = false):FLKApi<Int> {
+            require(offset < top) { "offset must be smaller than top." }
+            val sfl = SFList(flistBuilder(offset, top), !deepEquals)
+            sfl.ops = if (sfl.size < SAFE_RECURSION_SIZE.get()) FLKShreds.buildApi(sfl) else FLKShreds.buildSafeApi(sfl)
+            return SFListAlias(sfl) as FLKApi<Int>
         }
+        fun ofIntSeqRev(offset:Int, top:Int, deepEquals: Boolean = false): FLKApi<Int> {
+            require(offset < top) { "offset must be smaller than top." }
+            val sfl = SFList(flistReverseBuilder(offset, top), !deepEquals)
+            sfl.ops = if (sfl.size < SAFE_RECURSION_SIZE.get()) FLKShreds.buildApi(sfl) else FLKShreds.buildSafeApi(sfl)
+            return SFListAlias(sfl) as FLKApi<Int>
+        }
+
+        private data class SFListAlias<A: Any> constructor(
+            private val sfl: SFList<A>,
+        ): FListApi<A> by sfl.ops!!, FListSafe<A> by sfl, FLKApi<A> {
+            override fun hashCode(): Int = sfl.hashCode()
+            override fun equals(other: Any?): Boolean = this === other || other?.let { when (it) {
+                is SFListAlias<*> -> hashCode() == it.hashCode()
+                is SFList<*> -> hashCode() == it.hashCode()
+                else -> false
+            }} == true
+            override fun toString(): String = sfl.toString()
+        }
+
     }
 }

@@ -20,7 +20,7 @@ class FWOpsTest : ExpectSpec({
             kw2.msg shouldBe "B"
             val l = (kw2 as FWLog<*>).log
             l.size shouldBe 2
-            l.toString() shouldBe "FList@{2}:(B, #(A, #*)*)"
+            l.toString() shouldBe "SFList@{2}:(B, #(A, #*)*)"
         }
         expect("push(b:B, newMsg: String, mts:KWTrace<A>)") {
             val kw3 = FWOps.of("2","C",(kw2 as FWLog<*>).log )
@@ -28,14 +28,14 @@ class FWOpsTest : ExpectSpec({
             kw3.msg shouldBe "C"
             val l = (kw3 as FWLog<*>).log
             l.size shouldBe 3
-            l.toString() shouldBe "FList@{3}:(C, #(B, #(A, #*)*)*)"
+            l.toString() shouldBe "SFList@{3}:(C, #(B, #(A, #*)*)*)"
         }
     }
     context("hashcode") {
         expect("hash") {
             val kw = FWOps.of(2,"A")
-            kw1.hashCode() shouldBe 48115
-            kw.hashCode() shouldBe 48146
+            kw1.hashCode() shouldBe 48115 // 1569087408
+            kw.hashCode() shouldBe 48146 // 1569087439
         }
     }
     expect("equals") {
@@ -49,6 +49,7 @@ class FWOpsTest : ExpectSpec({
         kw2b.equals(kw2b_) shouldBe true
     }
     expect("toString") {
-        kw2.toString() shouldBe "KWTrace(item=1, trace=FList@{2}:(B, #(A, #*)*))"
+        kw1.toString() shouldBe "FWrtMsg(item=1, msg='A')"
+        kw2.toString() shouldBe "FWrtMsgs(item=1, log=SFList@{2}:(B, #(A, #*)*))"
     }
 })
