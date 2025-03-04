@@ -1,4 +1,4 @@
-package org.xrpn.flib.internal.ops
+package org.xrpn.flib.internal.impl
 
 import org.xrpn.flib.adt.FLCons
 import org.xrpn.flib.adt.FLKApi
@@ -7,8 +7,8 @@ import org.xrpn.flib.adt.FWLog
 import org.xrpn.flib.adt.FWriter
 import org.xrpn.flib.adt.FWrtMsg
 import org.xrpn.flib.adt.FWrtMsgs
-import org.xrpn.flib.decorator.SFList
 import org.xrpn.flib.internal.IdMe
+import org.xrpn.flib.rs.SFList
 
 @ConsistentCopyVisibility // this makes the visibility of .copy() private, like the constructor
 internal data class FWOps<A: Any> private constructor (

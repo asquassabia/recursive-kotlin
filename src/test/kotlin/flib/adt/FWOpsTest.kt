@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 import org.xrpn.flib.adt.FWLog
 import org.xrpn.flib.adt.FWrtMsg
 import org.xrpn.flib.adt.FWrtMsgs
-import org.xrpn.flib.internal.ops.FWOps
+import org.xrpn.flib.internal.impl.FWOps
 
 class FWOpsTest : ExpectSpec({
     val kw1: FWrtMsg<Int> = FWOps.of(1,"A")
@@ -34,8 +34,8 @@ class FWOpsTest : ExpectSpec({
     context("hashcode") {
         expect("hash") {
             val kw = FWOps.of(2,"A")
-            kw1.hashCode() shouldBe 48115 // 1569087408
-            kw.hashCode() shouldBe 48146 // 1569087439
+            kw1.hashCode() shouldBe 1569087408 // 48115 // 1569087408
+            kw.hashCode() shouldBe 1569087439 // 48146 // 1569087439
         }
     }
     expect("equals") {

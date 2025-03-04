@@ -78,7 +78,7 @@ data class Capture private constructor (
     fun revert(): Boolean = isRedirected.get() && synchronized(globalMutex) {
         synchronized(contentMutex) { wrapper.use {
             val owned = (System.out === capPair.first) && (System.err === capPair.second)
-            if (!owned) TODO("$FIX_TODO HANDLING attempt to revert on capture by others")
+            if (!owned) TODO("$FIX_TODO handling of attempt to revert on capture by others")
             run({
                 System.setOut(originalOut)
                 System.setErr(originalErr)

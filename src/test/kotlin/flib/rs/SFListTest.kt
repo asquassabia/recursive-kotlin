@@ -1,4 +1,4 @@
-package flib.decorator
+package flib.rs
 
 import flib.LARGE_DEPTH
 import flib.XLARGE_DEPTH
@@ -6,7 +6,7 @@ import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import org.xrpn.flib.adt.FLNil
-import org.xrpn.flib.decorator.SFList
+import org.xrpn.flib.rs.SFList
 import org.xrpn.flib.internal.tool.flistBuilder
 
 class SFListTest: ExpectSpec({

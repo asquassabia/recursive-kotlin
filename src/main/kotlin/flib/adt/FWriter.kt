@@ -2,7 +2,7 @@ package org.xrpn.flib.adt
 
 import org.xrpn.flib.internal.IdMe
 import org.xrpn.flib.pattern.Kind
-import org.xrpn.flib.internal.ops.FWOps
+import org.xrpn.flib.internal.impl.FWOps
 
 typealias FWKind<A> = Kind<FWriter<*>,A>
 

@@ -35,10 +35,10 @@ fun <T: Any, B> FList<T>.foldRight(z: B, f: (T, B) -> B): B {
 
 fun <T: Any, B> FList<T>.foldRightSafe(z: B, f: (T, B) -> B): B {
     data class args(val xs: FList<T>, val z: B, val f: (T, B) -> B)
-    fun goDeep(a: args): B = DeepRecursiveFunction<args, B> { a ->
-        when (a.xs) {
+    fun goDeep(a: args): B = DeepRecursiveFunction<args, B> { (xs, z, f) ->
+        when (xs) {
             is FLNil -> z
-            is FLCons -> a.f(a.xs.head, callRecursive(args(a.xs.tail, z, f)))
+            is FLCons -> f(xs.head, callRecursive(args(xs.tail, z, f)))
         }
     }(a)
     return goDeep(args(this, z, f))
@@ -50,38 +50,33 @@ fun <T: Any> FList<T>.head(): T? = when (this) {
 }
 
 fun <T: Any> FList<T>.init(): FList<T> {
-    fun go(xs: FList<T>, z: FList<T>, f: (T, FList<T>) -> FList<T>): FList<T> = when (xs) {
-        is FLCons if (xs.tail is FLNil && z !is FLNil) -> z
-        is FLCons if xs.tail is FLNil -> FLNil()
-        is FLCons -> f(xs.head, go(xs.tail, z, f))
-        is FLNil -> z
+    fun go(xs: FList<T>): FList<T> = when (xs) {
+        is FLCons -> FLCons(xs.head,
+            if ((xs.tail is FLCons) && (xs.tail.tail is FLNil)) FLNil<T>()
+            else go(xs.tail))
+        is FLNil -> xs
     }
-    return if (this is FLCons && this.tail() is FLNil) this
-        else go(this, FLNil<T>(), { item, l -> FLCons(item, l) })
+    return if (this is FLCons && this.tail is FLNil) this
+        else go(this)
 }
 
 fun <T: Any> FList<T>.initSafe(): FList<T> {
-    data class args(val xs: FList<T>, val z: FList<T>, val f: (T, FList<T>) -> FList<T>)
-    fun goDeep(a: args) = DeepRecursiveFunction<args, FList<T>> { (xs, z, f) ->
-        when (xs) {
-            is FLCons if (xs.tail is FLNil && z !is FLNil) -> z
-            is FLCons if xs.tail is FLNil -> FLNil()
-            is FLCons -> f(xs.head, callRecursive(args(xs.tail, z, f)))
-            is FLNil -> z
+    fun goDeep(xs: FList<T>):FList<T> = DeepRecursiveFunction<FList<T>, FList<T>> { xs -> when (xs) {
+            is FLCons -> FLCons(xs.head,
+               if ((xs.tail is FLCons) && (xs.tail.tail is FLNil)) FLNil<T>()
+               else callRecursive(xs.tail))
+            is FLNil -> xs
         }
-    }(a)
-    return if (this is FLCons && this.tail() is FLNil) this
-        else goDeep(args(this, FLNil<T>(), { item, l -> FLCons(item, l) }))
+    }(xs)
+    return if (this is FLCons && this.tail is FLNil) this
+        else goDeep(this)
 }
 
 fun <T: Any> FList<T>.last(): T? {
-    tailrec fun go(xs: FList<T>, count: Int): T? = when (xs) {
-        is FLCons if (xs.tail is FLNil && 0 == count) -> null
-        is FLCons if xs.tail is FLNil -> xs.head
-        is FLNil -> null
-        is FLCons -> go(xs.tail, count+1)
-    }
-    return go(this,0)
+    tailrec fun go(xs: FLCons<T>): T =
+        if (xs.tail is FLNil) xs.head
+        else go(xs.tail as FLCons)
+    return if (this is FLCons) (if (this.tail is FLNil) null else go(this)) else null
 }
 
 fun <T: Any> FList<T>.ne(): Boolean = this !is FLNil

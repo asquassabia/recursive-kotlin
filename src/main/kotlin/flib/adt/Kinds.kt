@@ -4,14 +4,13 @@ import org.xrpn.flib.internal.IdMe
 import org.xrpn.flib.internal.shredset.SizeMe
 import org.xrpn.flib.pattern.Kind
 
-sealed interface FLK<T>: Kind<FList<*>, T> {
+sealed interface FLK<T>: Kind<FList<*>, T>, IdMe, SizeMe {
     @Suppress("UNCHECKED_CAST")
     override fun fix(): FList<T> = this as FList<T>
 }
 
-interface FListSafe<A: Any>: FLK<A>
-interface FListApi<T: Any>: IdMe, SizeMe {
-    fun append(item: T): FListSafe<T>
+interface FListApi<T: Any> {
+    fun append(item: T): FLKApi<T>
     fun count(isMatch: (T) -> Boolean): Int
     fun <B> fold(z: B, f: (B, T) -> B): B
     fun <B> foldLeft(z: B, f: (B, T) -> B): B
@@ -23,8 +22,11 @@ interface FListApi<T: Any>: IdMe, SizeMe {
     fun prepend(item: T): FLKApi<T>
     fun reverse(): FLKApi<T>
     fun tail(): FLKApi<T>
+    fun <S: Any> map(f: (T) -> S): FLKApi<S>
+    fun <S: Any> flatMap(f: (T) -> FLKApi<S>): FLKApi<S>
+    fun <S: Any> lift(s: S): FLKApi<S>
 }
-interface FLKApi<A: Any>: FListSafe<A>, FListApi<A>
+interface FLKApi<A: Any>: FListApi<A>, FLK<A>
 
 /**
  * the out projection to the parameter type of testType: fun

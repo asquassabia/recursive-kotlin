@@ -1,10 +1,10 @@
-package org.xrpn.flib.impl
+package org.xrpn.flib.rs
 
 import org.xrpn.flib.adt.FWLog
 import org.xrpn.flib.adt.FWriter
 import org.xrpn.flib.adt.FWrtMsg
 import org.xrpn.flib.internal.effect.FLibLog
-import org.xrpn.flib.internal.ops.FWOps.Companion.of
+import org.xrpn.flib.internal.impl.FWOps.Companion.of
 
 fun <A,B: Any> ((A) -> B).fwrit(s:String): (A) -> FWrtMsg<B> = { a -> of(this(a), s)  }
 

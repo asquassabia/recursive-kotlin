@@ -1,14 +1,14 @@
-package flib.decorator
+package flib.rs
 
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
 import org.xrpn.flib.adt.FWrit
 import org.xrpn.flib.adt.FWriter
 import org.xrpn.flib.adt.FWrtMsg
-import org.xrpn.flib.impl.andThen
-import org.xrpn.flib.impl.bind
-import org.xrpn.flib.impl.fwrit
-import org.xrpn.flib.impl.fwStartValue
+import org.xrpn.flib.rs.andThen
+import org.xrpn.flib.rs.bind
+import org.xrpn.flib.rs.fwrit
+import org.xrpn.flib.rs.fwStartValue
 
 
 class FWApiTest : ExpectSpec({

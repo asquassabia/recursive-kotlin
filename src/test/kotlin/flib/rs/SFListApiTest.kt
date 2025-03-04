@@ -1,24 +1,54 @@
-package flib.decorator
+package flib.rs
 
 import flib.LARGE_DEPTH
+import flib.UNSAFE_DEPTH
+import flib.XLARGE_DEPTH
 import io.kotest.core.spec.style.ExpectSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import org.xrpn.flib.SAFE_RECURSION_SIZE
 import org.xrpn.flib.adt.FLCons
-import org.xrpn.flib.decorator.SFList
+import org.xrpn.flib.adt.FLKApi
+import org.xrpn.flib.adt.FLNil
+import org.xrpn.flib.rs.SFList
 import org.xrpn.flib.internal.IdMe
 
 class SFListApiTest : ExpectSpec({
 
+    assert(SAFE_RECURSION_SIZE.get() < UNSAFE_DEPTH)
     val sfl10 = SFList.ofIntSeq(0,10)
-    val sflLarge = SFList.ofIntSeq(0,LARGE_DEPTH)
-    val sflLargeRev = SFList.ofIntSeqRev(0,LARGE_DEPTH)
-
+    val sflLarge1 = SFList.ofIntSeq(0, LARGE_DEPTH)
+    val sflXLarge1 = SFList.ofIntSeq(0, XLARGE_DEPTH)
+    val sflUnsafe1 = SFList.ofIntSeq(0,UNSAFE_DEPTH)
+    val sflUnsafe2 = SFList.ofIntSeq(0,UNSAFE_DEPTH)
+    val sflUnsafeRev = SFList.ofIntSeqRev(0,UNSAFE_DEPTH)
 
     context("append") {
-        expect("TODO") {
-            TODO("implement this test")
+        val aut0 = SFList.of<Int>()
+        val aut1 = aut0.append(1)
+        val aut12 = aut1.append(2)
+        val aut123 = aut12.append(3)
+        expect("to empty") {
+            aut0.append(1) shouldBe aut0.prepend(1)
         }
+        expect("two items") {
+            val aut = aut1.append(2)
+            aut0.append(1).append(2) shouldBe aut
+            aut.reverse() shouldBe aut0.prepend(1).prepend(2)
+        }
+        expect("three items") {
+            val aut = aut12.append(3)
+            aut0.append(1).append(2).append(3).equal(aut) shouldBe true
+            aut.reverse() shouldBe aut0.prepend(1).prepend(2).prepend(3)
+        }
+        expect("safe for large") {
+            val aut = sflUnsafe1.append(1)
+            aut.size shouldBe UNSAFE_DEPTH+1
+            aut.head() shouldBe 0
+            aut.last() shouldBe 1
+            aut.init().equal(sflUnsafe1) shouldBe true
+        }
+
     }
 
     context("count") {
@@ -47,6 +77,7 @@ class SFListApiTest : ExpectSpec({
             aut1.count { true } shouldBe aut1.size
             aut2.count { true } shouldBe aut2.size
             aut3.count { true } shouldBe aut3.size
+            sflUnsafe1.count { true } shouldBe UNSAFE_DEPTH
         }
     }
 
@@ -118,6 +149,9 @@ class SFListApiTest : ExpectSpec({
             autAI3.equal(autBI3) shouldBe false
             autAS3.equal(autBS3) shouldBe false
         }
+        expect ("safe for large") {
+            sflUnsafe1.equal(sflUnsafe2) shouldBe true
+        }
     }
 
     context("fold") {
@@ -151,6 +185,11 @@ class SFListApiTest : ExpectSpec({
             val aut = SFList.of(autI3.foldLeft(SFList.of<Int>().fix()) { l, item -> FLCons(item,l) })
             aut.reverse().equal(autI3) shouldBe true
         }
+        expect("safe for large") {
+            val aut = SFList.of(sflUnsafe1.foldLeft(SFList.of<Int>().fix()) { l, item -> FLCons(item,l) })
+            aut.equal(sflUnsafeRev) shouldBe true
+            (aut === sflUnsafe1) shouldBe false
+        }
     }
 
     context("foldRight") {
@@ -174,36 +213,87 @@ class SFListApiTest : ExpectSpec({
             val aut = SFList.of(autI3.foldRight(SFList.of<Int>().fix()) { item, l -> FLCons(item,l) })
             aut.equal(autI3) shouldBe true
         }
+        expect("safe for large") {
+            val aut = SFList.of(sflUnsafe1.foldRight(SFList.of<Int>().fix()) { item, l -> FLCons(item,l) })
+            aut.equal(sflUnsafe1) shouldBe true
+            (aut === sflUnsafe1) shouldBe false
+        }
     }
 
-    context("head") {
+    context("head, tail") {
         val aut0 = SFList.of<Int>()
         expect("is null for empty list") {
             aut0.head() shouldBe null
+            aut0.tail() shouldBe SFList.of<Int>()
         }
         val aut1 = aut0.prepend(1)
         expect("is the only element") {
             aut1.head() shouldBe 1
+            aut1.tail() shouldBe SFList.of<Int>()
         }
         val aut2 = aut1.prepend(2)
         expect("is the first element") {
             aut2.head() shouldBe 2
+            aut2.tail() shouldBe aut1
         }
         val aut3 = aut2.prepend(3)
         expect("is the first element of three") {
             aut3.head() shouldBe 3
+            aut3.tail() shouldBe aut2
+        }
+        expect("safe for large") {
+            sflUnsafe1.head() shouldBe 0
+            sflUnsafe2.last() shouldBe UNSAFE_DEPTH-1
+            val aut = sflUnsafe1.tail()
+            aut.size shouldBe UNSAFE_DEPTH-1
+            aut.head() shouldBe 1
+            aut.last() shouldBe UNSAFE_DEPTH-1
         }
     }
 
-    context("init") {
-        expect("TODO") {
-            TODO("implement this test")
+    context("init, last") {
+        val aut0 = SFList.of<Int>()
+        expect("is null for empty list") {
+            aut0.init() shouldBe aut0
+            aut0.last() shouldBe null
         }
-    }
-
-    context("last") {
-        expect("TODO") {
-            TODO("implement this test")
+        val aut1 = aut0.append(1)
+        expect("is the only element") {
+            aut1.init() shouldBe aut1
+            aut1.last() shouldBe null
+        }
+        val aut2 = aut1.append(2)
+        expect("is the first element of two") {
+            aut2.init() shouldBe aut1
+            aut2.last() shouldBe 2
+        }
+        val aut3 = aut2.append(3)
+        expect("first two elements of three") {
+            aut3.init() shouldBe aut2
+            aut3.last() shouldBe 3
+        }
+        expect("safe for large") {
+            sflLarge1.last() shouldBe LARGE_DEPTH-1
+            val aut = sflLarge1.init()
+            aut.count { true } shouldBe LARGE_DEPTH-1
+            aut.head() shouldBe 0
+            aut.last() shouldBe LARGE_DEPTH-2
+        }
+        expect("safe for xlarge") {
+            sflXLarge1.size shouldBe XLARGE_DEPTH
+            sflXLarge1.last() shouldBe XLARGE_DEPTH-1
+            val aut = sflXLarge1.init()
+            aut.count { true } shouldBe XLARGE_DEPTH-1
+            aut.head() shouldBe 0
+            aut.last() shouldBe XLARGE_DEPTH-2
+        }
+        expect("safe for larger") {
+            sflUnsafe1.size shouldBe UNSAFE_DEPTH
+            sflUnsafe1.last() shouldBe UNSAFE_DEPTH-1
+            val aut = sflUnsafe1.init()
+            aut.count { true } shouldBe UNSAFE_DEPTH-1
+            aut.head() shouldBe 0
+            aut.last() shouldBe UNSAFE_DEPTH-2
         }
     }
 
@@ -249,6 +339,12 @@ class SFListApiTest : ExpectSpec({
             // should not compile
             // val autF4 = autF1.prepend(SupSup())
         }
+        expect("safe for large") {
+            val aut = sflUnsafe1.prepend(100)
+            aut.size shouldBe UNSAFE_DEPTH+1
+            aut.head() shouldBe 100
+            aut.last() shouldBe UNSAFE_DEPTH-1
+        }
     }
 
     context("reverse") {
@@ -277,14 +373,89 @@ class SFListApiTest : ExpectSpec({
             autA.equal(SFList.of<Int>().prepend(3).prepend(2).prepend(1)) shouldBe true
         }
         expect("matches reversed list") {
-            sflLarge.reverse().equal(sflLargeRev) shouldBe true
+            sflUnsafe1.reverse().equal(sflUnsafeRev) shouldBe true
         }
     }
 
-    context("tail") {
-        expect("TODO") {
-            TODO("implement this test")
+    context("size") {
+        val aut0 = SFList.of<Int>()
+        val aut1 = aut0.prepend(1)
+        val aut2 = aut1.prepend(2)
+        val aut3 = aut2.prepend(3)
+        expect("0 if empty") {
+            aut0.size shouldBe 0
+        }
+        expect("correct size") {
+            aut1.size shouldBe 1
+            aut2.size shouldBe 2
+            aut3.size shouldBe 3
+            sflUnsafe1.size shouldBe UNSAFE_DEPTH
         }
     }
 
+    context("map") {
+        val aut0 = SFList.of<Char>()
+        val ora0 = SFList.of<String>()
+        val aut1 = aut0.prepend('a')
+        val ora1 = ora0.prepend("a")
+        val aut2 = aut1.prepend('z')
+        val ora2 = ora1.prepend("z")
+        val aut3 = aut1.prepend('m')
+        val ora3 = ora1.prepend("m")
+        expect("map empty") {
+            aut0.map(Char::toString) shouldBe SFList.of<String>()
+        }
+        expect("map one item") {
+            aut1.map(Char::toString) shouldBe ora1
+        }
+        expect("map two items") {
+            aut2.map(Char::toString) shouldBe ora2
+        }
+        expect("map three items") {
+            aut3.map(Char::toString) shouldBe ora3
+        }
+        expect("map large") {
+            val aut = sflUnsafe1.map { i -> -i }
+            aut.size shouldBe UNSAFE_DEPTH
+            aut.head() shouldBe 0
+            aut.tail().head() shouldBe -1
+            aut.last() shouldBe -UNSAFE_DEPTH+1
+        }
+    }
+
+    context("lift") {
+        val aut0 = SFList.of<String>()
+        expect("String") {
+            val aut = aut0.lift("ABC")
+            aut shouldBe SFList.of(FLCons("ABC", FLNil<String>()))
+            (aut as SFList).isDeep() shouldBe false
+        }
+        expect("FLKApi<String>") {
+            val aux = FLCons("ABC", FLNil<String>())
+            val auxaux: FLCons<FLKApi<String>> = FLCons(SFList.of(aux), FLNil<FLKApi<String>>())
+            val aut: FLKApi<FLKApi<String>> = aut0.lift(SFList.of(aux))
+            aut shouldBe SFList.of(auxaux)
+            (aut as SFList).isDeep() shouldBe false
+        }
+    }
+
+    context("flatMap") {
+        expect("FLKApi<String>") {
+            val aux1: FLKApi<String> = SFList.of(FLCons("ABC", FLNil<String>()))
+            val aux2: FLKApi<String> = SFList.of(FLCons("DEF", FLNil<String>()))
+            val aux3: FLKApi<String> = SFList.of(FLCons("GHI", FLCons( "JKL",FLNil<String>())))
+            val aux: FLCons<FLKApi<String>> = FLCons(aux1, FLCons(aux2, FLCons(aux3,FLNil())))
+            val data: FLKApi<FLKApi<String>> = SFList.of(aux)
+            data.toString() shouldBe "SFList@{3}:(SFList@{1}:(ABC, #*), #(SFList@{1}:(DEF, #*), #(SFList@{2}:(GHI, #(JKL, #*)*), #*)*)*)"
+            (data as SFList).isDeep() shouldBe false
+            fun f(a: FLKApi<String>): FLKApi<String> = a.map{ s: String -> s.lowercase() }
+            val autf: FLKApi<String> = data.flatMap(::f)
+            autf.toString() shouldBe "SFList@{4}:(abc, #(def, #(ghi, #(jkl, #*)*)*)*)"
+            fun g(a: FLKApi<String>): FLKApi<Int> = a.map{ s: String -> s.hashCode() }
+            val autg: FLKApi<Int> = data.flatMap(::g)
+            autg.toString() shouldBe "SFList@{4}:(64578, #(67557, #(70536, #(73515, #*)*)*)*)"
+            "ABC".hashCode() shouldBe 64578
+            "JKL".hashCode() shouldBe 73515
+        }
+    }
 })
