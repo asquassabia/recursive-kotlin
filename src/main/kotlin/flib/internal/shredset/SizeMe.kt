@@ -1,11 +1,9 @@
 package org.xrpn.flib.internal.shredset
 
-import org.xrpn.flib.internal.IdMe
-
 interface SizeMe {
-    /** Number of elements in [IdMe] */
+    /** Number of elements in [SizeMe] */
     val size: Int
-    /** True if [IdMe] has no elements*/
+    /** True if [SizeMe] has no elements*/
     val empty: Boolean
         get() = 0 == size
     val ne: Boolean

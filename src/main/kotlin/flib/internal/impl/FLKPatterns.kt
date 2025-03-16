@@ -1,15 +1,12 @@
 package org.xrpn.flib.internal.impl
 
 import org.xrpn.flib.FIX_TODO
-import org.xrpn.flib.SAFE_RECURSION_SIZE
 import org.xrpn.flib.adt.FLCons
 import org.xrpn.flib.adt.FLK
 import org.xrpn.flib.adt.FLKApi
 import org.xrpn.flib.adt.FLNil
 import org.xrpn.flib.adt.FList
 import org.xrpn.flib.api.foldLeft
-import org.xrpn.flib.api.foldRight
-import org.xrpn.flib.api.foldRightSafe
 import org.xrpn.flib.api.reverse
 import org.xrpn.flib.internal.tool.like
 import org.xrpn.flib.rs.SFList
@@ -17,7 +14,7 @@ import org.xrpn.flib.pattern.KFunctor
 import org.xrpn.flib.pattern.KMonad
 import org.xrpn.flib.pattern.Kind
 
-internal interface FLKPatterns<A>: KMonad<FList<*>>, KFunctor<FList<*>> {
+internal interface FLKPatterns: KMonad<FList<*>>, KFunctor<FList<*>> {
     companion object {
 
         private fun <T: Any> Kind<FList<*>, *>.empty(): FLK<T> = when (this) {
@@ -33,7 +30,7 @@ internal interface FLKPatterns<A>: KMonad<FList<*>>, KFunctor<FList<*>> {
             is FLKApi<*> -> SFList.of(FLCons(item,this.fix()))
         }
 
-        internal fun <A> build(): FLKPatterns<A> = object : FLKPatterns<A> {
+        internal fun build(): FLKPatterns = object : FLKPatterns {
 
             override fun <TL : Any> lift(
                 fa: Kind<FList<*>, *>,
@@ -67,14 +64,14 @@ internal interface FLKPatterns<A>: KMonad<FList<*>>, KFunctor<FList<*>> {
             }
             */
 
-            override fun <A: Any, B: Any> map(fa: Kind<FList<*>, A>, f: (A) -> B): FLKApi<B> {
-                fa as FLK<A>
-                tailrec fun go(xs: FList<A>, f: (A) -> B, out: FList<B>): FList<B> = when (xs) {
+            override fun <TA: Any, TB: Any> map(fa: Kind<FList<*>, TA>, f: (TA) -> TB): FLKApi<TB> {
+                fa as FLK<TA>
+                tailrec fun go(xs: FList<TA>, f: (TA) -> TB, out: FList<TB>): FList<TB> = when (xs) {
                     is FLNil -> out.reverse()
-                    is FLCons<A> -> go (xs.tail, f, FLCons(f(xs.head), out))
+                    is FLCons<TA> -> go (xs.tail, f, FLCons(f(xs.head), out))
                 }
                 // 0.150 sec for map { i -> -i } over 1E6 records
-                return go(fa.fix(), f, FLNil<B>()).like(fa)
+                return go(fa.fix(), f, FLNil<TB>()).like(fa)
             }
 
             override fun <TA : Any, TB : Any> flatMap(

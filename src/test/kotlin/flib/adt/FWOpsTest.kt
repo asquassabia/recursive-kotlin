@@ -5,11 +5,11 @@ import io.kotest.matchers.shouldBe
 import org.xrpn.flib.adt.FWLog
 import org.xrpn.flib.adt.FWrtMsg
 import org.xrpn.flib.adt.FWrtMsgs
-import org.xrpn.flib.internal.impl.FWOps
+import org.xrpn.flib.internal.impl.FWBuilder
 
 class FWOpsTest : ExpectSpec({
-    val kw1: FWrtMsg<Int> = FWOps.of(1,"A")
-    val kw2: FWrtMsgs<Int> = FWOps.of(1,"B", (kw1 as FWLog<*>).log )
+    val kw1: FWrtMsg<Int> = FWBuilder.startWith(1,"A")
+    val kw2: FWrtMsgs<Int> = FWBuilder.startWith(1,"B", (kw1 as FWLog<*>).log )
     context("constructors") {
         expect("of(a:A, msg:Strint)") {
             kw1.item shouldBe 1
@@ -23,7 +23,7 @@ class FWOpsTest : ExpectSpec({
             l.toString() shouldBe "SFList@{2}:(B, #(A, #*)*)"
         }
         expect("push(b:B, newMsg: String, mts:KWTrace<A>)") {
-            val kw3 = FWOps.of("2","C",(kw2 as FWLog<*>).log )
+            val kw3 = FWBuilder.startWith("2","C",(kw2 as FWLog<*>).log )
             kw3.item shouldBe "2"
             kw3.msg shouldBe "C"
             val l = (kw3 as FWLog<*>).log
@@ -33,16 +33,16 @@ class FWOpsTest : ExpectSpec({
     }
     context("hashcode") {
         expect("hash") {
-            val kw = FWOps.of(2,"A")
+            val kw = FWBuilder.startWith(2,"A")
             kw1.hashCode() shouldBe 1569087408 // 48115 // 1569087408
             kw.hashCode() shouldBe 1569087439 // 48146 // 1569087439
         }
     }
     expect("equals") {
-        val kw2_: FWrtMsgs<Int> = FWOps.of(1,"B",(kw1 as FWLog<*>).log)
-        val kw2a: FWrtMsgs<Int> = FWOps.of('a'.code,"B",(kw1 as FWLog<*>).log)
-        val kw2b: FWrtMsgs<Char> = FWOps.of('a',"B",(kw1 as FWLog<*>).log)
-        val kw2b_: FWrtMsgs<Char> = FWOps.of('a',"B",(kw1 as FWLog<*>).log)
+        val kw2_: FWrtMsgs<Int> = FWBuilder.startWith(1,"B",(kw1 as FWLog<*>).log)
+        val kw2a: FWrtMsgs<Int> = FWBuilder.startWith('a'.code,"B",(kw1 as FWLog<*>).log)
+        val kw2b: FWrtMsgs<Char> = FWBuilder.startWith('a',"B",(kw1 as FWLog<*>).log)
+        val kw2b_: FWrtMsgs<Char> = FWBuilder.startWith('a',"B",(kw1 as FWLog<*>).log)
         kw2.equals(kw2_) shouldBe true
         kw2.equals(kw2a) shouldBe false
         kw2a.equals(kw2b) shouldBe false

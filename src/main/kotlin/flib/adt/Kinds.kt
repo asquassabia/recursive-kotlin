@@ -25,8 +25,13 @@ interface FListApi<T: Any> {
     fun <S: Any> map(f: (T) -> S): FLKApi<S>
     fun <S: Any> flatMap(f: (T) -> FLKApi<S>): FLKApi<S>
     fun <S: Any> lift(s: S): FLKApi<S>
+    fun display(header: String = "", oneLine: Boolean = true): String
 }
 interface FLKApi<A: Any>: FListApi<A>, FLK<A>
+
+interface FIOTake<A: Any>: Kind<FIOin<A>, A>
+interface FIOGive<A: Any>: Kind<FIOex<A>, A>
+
 
 /**
  * the out projection to the parameter type of testType: fun

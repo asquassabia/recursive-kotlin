@@ -16,7 +16,7 @@ internal interface FLibLog {
         FLibLogCtx {
         override val logStream = PrintStream(dest,true)
         override val emitterClass = emitter?.let { "${it::class}" } ?: "${this::class.supertypes}"
-        override val emitterString: String = "${emitter ?: ""}"
+        override val emitterString: String = "${emitter ?: "# emitter unavailable #"}"
         fun emitMsg(): FLibLogCtx = synchronized(logStream) {
             this.logStream.print("$ERR_TAG $msg $ERR_BY_TAG ")
             if (newLine) this.logStream.println()

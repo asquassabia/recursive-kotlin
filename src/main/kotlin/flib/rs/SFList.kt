@@ -2,7 +2,6 @@ package org.xrpn.flib.rs
 
 import org.xrpn.flib.EQUALS_DEBUG
 import org.xrpn.flib.adt.FLCons
-import org.xrpn.flib.adt.FListApi
 import org.xrpn.flib.adt.FLNil
 import org.xrpn.flib.adt.FList
 import org.xrpn.flib.adt.FLKApi
@@ -26,8 +25,8 @@ import org.xrpn.flib.pattern.InjectionTarget
 class SFList<A: Any> private constructor(
     private val list: FList<A>,
     private val shallowEquals: Boolean = true,
-    private val ioc: InjectionTarget<Pair<FLKShreds<A>,FLKPatterns<A>>> = 
-        InjectionTarget(Pair(FLKShreds.build(),FLKPatterns.build<A>()))
+    private val ioc: InjectionTarget<Pair<FLKShreds<A>,FLKPatterns>> =
+        InjectionTarget(Pair(FLKShreds.build(),FLKPatterns.build()))
 ): FLKApi<A> {
     fun isDeep(): Boolean = !shallowEquals
     override fun fix(): FList<A> = list
@@ -67,6 +66,7 @@ class SFList<A: Any> private constructor(
     override fun <S : Any> map(f: (A) -> S): FLKApi<S> = ioc.d.second.map(this,f) as FLKApi
     override fun <S : Any> flatMap(f: (A) -> FLKApi<S>): FLKApi<S> = ioc.d.second.flatMap(this,f) as FLKApi<S>
     override fun <S : Any> lift(s: S): FLKApi<S> = of(FLCons(s,FLNil<S>()))
+    override fun display(header: String, oneLine: Boolean): String = if (oneLine) show else ioc.d.first.ffoldLeft(this,if (header.isEmpty()) header else "$header\n") { str, h -> "$str\t$h\n" }
 
     companion object {
 

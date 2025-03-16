@@ -6,8 +6,7 @@ interface IdMe {
     /** Stack safe [String] representation of [IdMe] */
     val show: String
     fun <T: IdMe> equal(other: T): Boolean =
-        /* TODO */
         // this === other || ( other::class == this::class && hash == other.hash )
-        // ^^^ other::class == this::class BREAKS when delegate are in play
+        //                     ^^^ other::class == this::class BREAKS when delegates are in play
         this === other || hash == other.hash
 }
