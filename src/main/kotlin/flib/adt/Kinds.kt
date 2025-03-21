@@ -11,6 +11,7 @@ sealed interface FLK<T>: Kind<FList<*>, T>, IdMe, SizeMe {
 
 interface FListApi<T: Any> {
     fun append(item: T): FLKApi<T>
+    fun append(items: FLKApi<T>): FLKApi<T>
     fun count(isMatch: (T) -> Boolean): Int
     fun <B> fold(z: B, f: (B, T) -> B): B
     fun <B> foldLeft(z: B, f: (B, T) -> B): B
@@ -20,6 +21,7 @@ interface FListApi<T: Any> {
     fun last(): T?
     fun pick(): T?
     fun prepend(item: T): FLKApi<T>
+    fun prepend(items: FLKApi<T>): FLKApi<T>
     fun reverse(): FLKApi<T>
     fun tail(): FLKApi<T>
     fun <S: Any> map(f: (T) -> S): FLKApi<S>
@@ -28,6 +30,22 @@ interface FListApi<T: Any> {
     fun display(header: String = "", oneLine: Boolean = true): String
 }
 interface FLKApi<A: Any>: FListApi<A>, FLK<A>
+
+interface FWK<T>: Kind<FWriter<*>,T> {
+    @Suppress("UNCHECKED_CAST")
+    override fun fix(): FWriter<T> = this as FWriter<T>
+}
+
+interface FRK<T>: Kind<FRes,T> {
+    @Suppress("UNCHECKED_CAST")
+    override fun fix(): FRes = this as FRes
+}
+
+interface FLRK<T>: Kind<FLRes,T> {
+    @Suppress("UNCHECKED_CAST")
+    override fun fix(): FLRes = this as FLRes
+}
+
 
 interface FIOTake<A: Any>: Kind<FIOin<A>, A>
 interface FIOGive<A: Any>: Kind<FIOex<A>, A>

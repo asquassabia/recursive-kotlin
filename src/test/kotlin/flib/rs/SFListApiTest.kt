@@ -16,14 +16,15 @@ import org.xrpn.flib.internal.IdMe
 class SFListApiTest : ExpectSpec({
 
     assert(SAFE_RECURSION_SIZE.get() < UNSAFE_DEPTH)
-    val sfl10 = SFList.ofIntSeq(0,10)
+    val sfl0to9 = SFList.ofIntSeq(0,10)
+    val sfl10to19 = SFList.ofIntSeq(10,20)
     val sflLarge1 = SFList.ofIntSeq(0, LARGE_DEPTH)
     val sflXLarge1 = SFList.ofIntSeq(0, XLARGE_DEPTH)
     val sflUnsafe1 = SFList.ofIntSeq(0,UNSAFE_DEPTH)
     val sflUnsafe2 = SFList.ofIntSeq(0,UNSAFE_DEPTH)
     val sflUnsafeRev = SFList.ofIntSeqRev(0,UNSAFE_DEPTH)
 
-    context("append") {
+    context("append item") {
         val aut0 = SFList.of<Int>()
         val aut1 = aut0.append(1)
         val aut12 = aut1.append(2)
@@ -38,7 +39,7 @@ class SFListApiTest : ExpectSpec({
         }
         expect("three items") {
             val aut = aut12.append(3)
-            aut0.append(1).append(2).append(3).equal(aut) shouldBe true
+            aut123.equal(aut) shouldBe true
             aut.reverse() shouldBe aut0.prepend(1).prepend(2).prepend(3)
         }
         expect("safe for large") {
@@ -48,7 +49,48 @@ class SFListApiTest : ExpectSpec({
             aut.last() shouldBe 1
             aut.init().equal(sflUnsafe1) shouldBe true
         }
+    }
 
+    context("append items") {
+
+        expect("validation") {
+            sfl0to9.head() shouldBe 0
+            sfl0to9.last() shouldBe 9
+            sfl0to9.size shouldBe 10
+            sfl10to19.head() shouldBe 10
+            sfl10to19.last() shouldBe 19
+            sfl10to19.size shouldBe 10
+        }
+
+        expect("simple") {
+            val aut = sfl0to9.append(sfl10to19)
+            aut.head() shouldBe 0
+            aut.last() shouldBe 19
+            aut.size shouldBe 20
+        }
+
+        expect("arbitrary type and subtype") {
+            TODO()
+//            open class SupSup()
+//            open class Sup(): SupSup()
+//            class Sub() : Sup()
+//            val autF0 = SFList.of<Sup>()
+//            val autF1 = autF0.prepend(Sup())
+//            autF1.size shouldBe 1
+//            val autF2 = autF1.prepend(Sub())
+//            autF2.size shouldBe 2
+//            val autF3 = autF2.prepend(Sup())
+//            autF3.size shouldBe 3
+//            // should not compile
+//            // val autF4 = autF1.prepend(SupSup())
+        }
+        expect("safe for large") {
+            TODO()
+//            val aut = sflUnsafe1.prepend(100)
+//            aut.size shouldBe UNSAFE_DEPTH+1
+//            aut.head() shouldBe 100
+//            aut.last() shouldBe UNSAFE_DEPTH-1
+        }
     }
 
     context("count") {
@@ -156,9 +198,9 @@ class SFListApiTest : ExpectSpec({
 
     context("fold") {
         expect ("in terms of foldLeft") {
-            val fres = sfl10.fold(0) { a, b -> a - b }
-            val flres = sfl10.foldLeft(0) { a, b -> a - b }
-            val frres = sfl10.foldRight(0) { a, b -> a - b }
+            val fres = sfl0to9.fold(0) { a, b -> a - b }
+            val flres = sfl0to9.foldLeft(0) { a, b -> a - b }
+            val frres = sfl0to9.foldRight(0) { a, b -> a - b }
             fres shouldBe flres
             fres shouldNotBe frres
         }
@@ -312,7 +354,7 @@ class SFListApiTest : ExpectSpec({
         }
     }
 
-    context("prepend") {
+    context("prepend item") {
         val aut0 = SFList.of<Int>()
         val aut1 = aut0.prepend(1)
         expect("one") {
@@ -344,6 +386,48 @@ class SFListApiTest : ExpectSpec({
             aut.size shouldBe UNSAFE_DEPTH+1
             aut.head() shouldBe 100
             aut.last() shouldBe UNSAFE_DEPTH-1
+        }
+    }
+
+    context("prepend items") {
+
+        expect("validation") {
+            sfl0to9.head() shouldBe 0
+            sfl0to9.last() shouldBe 9
+            sfl0to9.size shouldBe 10
+            sfl10to19.head() shouldBe 10
+            sfl10to19.last() shouldBe 19
+            sfl10to19.size shouldBe 10
+        }
+
+        expect("simple") {
+            val aut = sfl10to19.prepend(sfl0to9)
+            aut.head() shouldBe 0
+            aut.last() shouldBe 19
+            aut.size shouldBe 20
+        }
+
+        expect("arbitrary type and subtype") {
+            TODO()
+//            open class SupSup()
+//            open class Sup(): SupSup()
+//            class Sub() : Sup()
+//            val autF0 = SFList.of<Sup>()
+//            val autF1 = autF0.prepend(Sup())
+//            autF1.size shouldBe 1
+//            val autF2 = autF1.prepend(Sub())
+//            autF2.size shouldBe 2
+//            val autF3 = autF2.prepend(Sup())
+//            autF3.size shouldBe 3
+//            // should not compile
+//            // val autF4 = autF1.prepend(SupSup())
+        }
+        expect("safe for large") {
+            TODO()
+//            val aut = sflUnsafe1.prepend(100)
+//            aut.size shouldBe UNSAFE_DEPTH+1
+//            aut.head() shouldBe 100
+//            aut.last() shouldBe UNSAFE_DEPTH-1
         }
     }
 

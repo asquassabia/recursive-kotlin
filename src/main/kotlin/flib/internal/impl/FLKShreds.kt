@@ -1,6 +1,7 @@
 package org.xrpn.flib.internal.impl
 
 import org.xrpn.flib.SAFE_RECURSION_SIZE
+import org.xrpn.flib.adt.FLCons
 import org.xrpn.flib.adt.FLK
 import org.xrpn.flib.adt.FLKApi
 import org.xrpn.flib.adt.FList
@@ -21,11 +22,12 @@ import org.xrpn.flib.api.prepend
 import org.xrpn.flib.api.reverse
 import org.xrpn.flib.api.size
 import org.xrpn.flib.api.tail
+import org.xrpn.flib.internal.shredset.FBatchSequence
 import org.xrpn.flib.internal.shredset.FSequence
 import org.xrpn.flib.internal.tool.like
 import org.xrpn.flib.pattern.Kind
 
-internal interface FLKShreds<T: Any>: FSequence<FList<*>, T> {
+internal interface FLKShreds<T: Any>: FBatchSequence<FList<*>, T> {
     companion object {
         internal fun <T : Any> build() : FLKShreds<T> = object : FLKShreds<T> {
             override fun fsize(fa: Kind<FList<*>,T>): Int = (fa as FLK<T>).fix().size()
@@ -52,11 +54,25 @@ internal interface FLKShreds<T: Any>: FSequence<FList<*>, T> {
             override fun freverse(fa: Kind<FList<*>,T>): FLKApi<T> = (fa as FLK<T>).fix().reverse().like(fa)
             override fun finit(fa: Kind<FList<*>,T>): FLKApi<T> {
                 fa as FLK<T>
-                return (if (fa.size <= SAFE_RECURSION_SIZE.get()) fa.fix().init()
-                        else fa.fix().initSafe()
-                       ).like(fa)
+                return (if (fa.size <= SAFE_RECURSION_SIZE.get()) fa.fix().init() else fa.fix().initSafe()).like(fa)
             }
             override fun flast(fa: Kind<FList<*>,T>): T? = (fa as FLK<T>).fix().last()
+            override fun fprepend(
+                faNew: Kind<FList<*>, T>,
+                fa: Kind<FList<*>, T>
+            ): Kind<FList<*>, T> {
+                fa as FLK<T>
+                return (ffoldLeft(freverse(faNew),fa.fix()) { l, item -> FLCons(item,l) }).like(fa)
+            }
+
+            override fun fappend(
+                fa: Kind<FList<*>, T>,
+                faNew: Kind<FList<*>, T>
+            ): Kind<FList<*>, T> {
+                faNew as FLK<T>
+                fa as FLK<T>
+                return (ffoldLeft(freverse(fa),faNew.fix()) { l, item -> FLCons(item,l) }).like(fa)
+            }
         }
     }
 }

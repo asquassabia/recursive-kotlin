@@ -52,6 +52,7 @@ class SFList<A: Any> private constructor(
     }} == true
 
     override fun append(item: A): FLKApi<A> = ioc.d.first.fappend(this, item) as FLKApi<A>
+    override fun append(items: FLKApi<A>): FLKApi<A> = ioc.d.first.fappend(this, items) as FLKApi<A>
     override fun count(isMatch: (A) -> Boolean): Int = ioc.d.first.fcount(this, isMatch)
     override fun <B> fold(z: B, f: (B, A) -> B): B = ioc.d.first.ffoldLeft(this, z, f)
     override fun <B> foldLeft(z: B, f: (B, A) -> B): B = ioc.d.first.ffoldLeft(this, z, f)
@@ -61,6 +62,7 @@ class SFList<A: Any> private constructor(
     override fun last(): A? = ioc.d.first.flast(this)
     override fun pick(): A? = ioc.d.first.fpick(this)
     override fun prepend(item: A): FLKApi<A> = ioc.d.first.fprepend(this, item) as FLKApi<A>
+    override fun prepend(items: FLKApi<A>): FLKApi<A> = ioc.d.first.fprepend(items,this) as FLKApi<A>
     override fun reverse(): FLKApi<A> = ioc.d.first.freverse(this) as FLKApi<A>
     override fun tail(): FLKApi<A> = ioc.d.first.ftail(this) as FLKApi<A>
     override fun <S : Any> map(f: (A) -> S): FLKApi<S> = ioc.d.second.map(this,f) as FLKApi
